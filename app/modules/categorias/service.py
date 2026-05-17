@@ -2,6 +2,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from app.modules.categorias import repository
 from app.shared.exceptions import DominioError
+"Clase servicio que ayudará a crear las APIs en el  router de categoría"
 def crear_categoria(db: Session, payload: dict, user_id: int) -> dict:
     try:
         item = repository.create(db, payload, user_id)

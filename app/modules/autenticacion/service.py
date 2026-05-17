@@ -3,7 +3,7 @@ from app.core.security import crear_token_acceso, verify_password
 from app.modules.autenticacion import repository
 from app.modules.usuarios.model import Usuario
 from app.shared.exceptions import DominioError
-"Clase servicio que ayudará a crear las APIs en router"
+"Clase servicio que ayudará a crear las APIs en el  router de autenticación"
 def login(db: Session, nombre_usuario: str, clave: str) -> dict:
     user = repository.get_by_username(db, nombre_usuario)
     if not user or user.estado != 'ACTIVO' or not verify_password(clave, user.clave_hash):
