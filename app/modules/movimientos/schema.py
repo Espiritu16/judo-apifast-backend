@@ -1,4 +1,6 @@
 from pydantic import BaseModel, ConfigDict, Field
+"""Clases que representan los datos que se transmitirán 
+entre servidor y cliente a través de las APIs relacionadas al módulo de movimientos"""
 class MovimientoCreate(BaseModel):
     id_producto: int
     tipo_movimiento: str
