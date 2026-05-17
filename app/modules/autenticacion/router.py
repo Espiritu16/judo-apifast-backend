@@ -2,8 +2,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from app.core.deps import get_current_user, get_db
 from app.modules.autenticacion.schema import LoginRequest
-from app.modules.autenticacion.service import login as login_service
-from app.modules.autenticacion.service import me as me_service
+from app.modules.autenticacion.service import AutenticacionService as AutenticacionServ
 from app.modules.usuarios.model import Usuario
 from app.shared.responses import respuesta_ok
 router = APIRouter()
@@ -12,8 +11,8 @@ router = APIRouter()
 que digita una persona en el login al servidor"""
 @router.post('/login')
 def login(payload: LoginRequest, db: Session = Depends(get_db)):
-    return respuesta_ok('Login exitoso', login_service(db, payload.nombre_usuario, payload.clave))
+    return respuesta_ok('Login exitoso', AutenticacionServ.login(db, payload.nombre_usuario, payload.clave))
 "API para saber si un usuario ha sido autenticado"
 @router.get('/me')
 def me(user: Usuario = Depends(get_current_user)):
-    return respuesta_ok('Usuario autenticado', me_service(user))
+    return respuesta_ok('Usuario autenticado', AutenticacionServ.me(user))
