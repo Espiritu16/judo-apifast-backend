@@ -1,7 +1,7 @@
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 from app.modules.usuarios.model import Usuario
-"Clase repositorio que contendrá métodos que se utilizan en Service"
+"Clase repositorio que contendrá funciones que se utilizan en Service de autenticación"
 class UsuarioRepository:
     def __init__(self, db: Session):
         """Inyecta la sesión de la base de datos al inicializar la clase."""

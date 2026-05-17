@@ -1,4 +1,6 @@
 from pydantic import BaseModel
+"""Clases que representan los datos que se transmitirán 
+entre servidor y cliente a través de las APIs relacionadas al módulo de autenticación"""
 class LoginRequest(BaseModel):
     nombre_usuario: str
     clave: str
