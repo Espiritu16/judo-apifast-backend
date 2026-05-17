@@ -1,9 +1,7 @@
 from collections.abc import Generator
-
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
-
 from app.core.database import SessionLocal
 from app.core.security import decodificar_token
 from app.modules.usuarios.model import Usuario
@@ -20,7 +18,6 @@ def get_current_user(
 ) -> Usuario:
     if not credentials:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='No autenticado')
-
     try:
         payload = decodificar_token(credentials.credentials)
     except ValueError:
@@ -28,7 +25,6 @@ def get_current_user(
     user_id = payload.get('sub')
     if user_id is None:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Token invalido')
-
     user = db.get(Usuario, int(user_id))
     if not user or user.estado != 'ACTIVO':
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Usuario no valido')
@@ -38,5 +34,4 @@ def require_roles(*allowed: str):
         if user.rol not in allowed:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='Sin permisos para esta operacion')
         return user
-
     return _check
