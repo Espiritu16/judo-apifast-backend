@@ -2,6 +2,7 @@ from datetime import datetime
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 from app.modules.proveedores.model import Proveedor
+"Clase repositorio que contendrá funciones que se utilizan en Service de proveedores"
 class ProveedorRepository:
     def __init__(self,db:Session):
         self.db = db
