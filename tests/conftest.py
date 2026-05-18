@@ -1,1 +1,0 @@
-# Configuracion base de pruebas
