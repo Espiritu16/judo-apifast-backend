@@ -1,7 +1,7 @@
 from sqlalchemy import BigInteger, CheckConstraint, ForeignKey, String, TIMESTAMP, func
 from sqlalchemy.orm import Mapped, mapped_column
 from app.core.database import Base
-"Modulo que representa la tabla Proveedor de la base de datos en MySQL en formato Python"
+"Modelo que representa la tabla Proveedor de la base de datos en MySQL en formato Python"
 class Proveedor(Base):
     __tablename__ = 'proveedor'
     id_proveedor: Mapped[int] = mapped_column(BigInteger, primary_key=True)

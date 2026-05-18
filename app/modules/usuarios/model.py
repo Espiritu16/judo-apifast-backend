@@ -1,6 +1,7 @@
 from sqlalchemy import BigInteger, CheckConstraint, ForeignKey, String, TIMESTAMP, func
 from sqlalchemy.orm import Mapped, mapped_column
 from app.core.database import Base
+#Modelo de la tabla Usuario de MySQL en formato Python
 class Usuario(Base):
     __tablename__ = 'usuario'
     id_usuario: Mapped[int] = mapped_column(BigInteger, primary_key=True)
