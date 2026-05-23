@@ -14,6 +14,7 @@ class ProveedorCreate(BaseModel):
     distrito: str | None = Field(default=None, max_length=80)
     estado_contribuyente: str | None = Field(default=None, max_length=50)
     condicion_contribuyente: str | None = Field(default=None, max_length=50)
+    categoria_ids: list[int] = Field(default_factory=list)
 
 
 class ProveedorUpdate(BaseModel):
@@ -29,6 +30,7 @@ class ProveedorUpdate(BaseModel):
     distrito: str | None = Field(default=None, max_length=80)
     estado_contribuyente: str | None = Field(default=None, max_length=50)
     condicion_contribuyente: str | None = Field(default=None, max_length=50)
+    categoria_ids: list[int] = Field(default_factory=list)
 
 
 class InactivarPayload(BaseModel):
@@ -50,7 +52,13 @@ class ProveedorOut(BaseModel):
     estado_contribuyente: str | None
     condicion_contribuyente: str | None
     estado: str
+    categoria_ids: list[int] = Field(default_factory=list)
+    categorias: list[str] = Field(default_factory=list)
     model_config = ConfigDict(from_attributes=True)
+
+
+class ProveedorCategoriasUpdate(BaseModel):
+    categoria_ids: list[int] = Field(default_factory=list)
 
 
 class FactilizaDniData(BaseModel):

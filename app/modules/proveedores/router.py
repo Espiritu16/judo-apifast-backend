@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from app.core.deps import get_current_user, get_db, require_roles
-from app.modules.proveedores.schema import InactivarPayload, ProveedorCreate, ProveedorUpdate
+from app.modules.proveedores.schema import InactivarPayload, ProveedorCategoriasUpdate, ProveedorCreate, ProveedorUpdate
 from app.modules.proveedores.service import ProveedorService  as ProveedorServ
 from app.modules.usuarios.model import Usuario
 from app.shared.responses import respuesta_ok
@@ -32,3 +32,21 @@ def actualizar_proveedor(id_proveedor: int, payload: ProveedorUpdate, db: Sessio
 @router.patch('/{id_proveedor}/inactivar')
 def inactivar_proveedor(id_proveedor: int, payload: InactivarPayload, db: Session = Depends(get_db), user: Usuario = Depends(require_roles('DUEÑA'))):
     return respuesta_ok('Proveedor inactivado', ProveedorServ(db).inactivar_proveedor(id_proveedor, payload.motivo, user.id_usuario))
+
+
+@router.get('/{id_proveedor}/categorias')
+def obtener_categorias_proveedor(id_proveedor: int, db: Session = Depends(get_db), _: Usuario = Depends(get_current_user)):
+    return respuesta_ok('Categorías del proveedor', ProveedorServ(db).listar_categorias(id_proveedor))
+
+
+@router.put('/{id_proveedor}/categorias')
+def actualizar_categorias_proveedor(
+    id_proveedor: int,
+    payload: ProveedorCategoriasUpdate,
+    db: Session = Depends(get_db),
+    user: Usuario = Depends(require_roles('DUEÑA')),
+):
+    return respuesta_ok(
+        'Categorías del proveedor actualizadas',
+        ProveedorServ(db).actualizar_categorias(id_proveedor, payload.categoria_ids, user.id_usuario),
+    )

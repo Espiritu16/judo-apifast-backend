@@ -22,6 +22,7 @@ class ProveedorService:
         self._validar_duplicados(payload)
         try:
             item = self.repo.create(payload, user_id)
+            self.repo.replace_category_assignments(item.id_proveedor, payload.get('categoria_ids', []), user_id)
             self.db.commit()
             self.db.refresh(item)
             return self._to_dict(item)
@@ -51,6 +52,7 @@ class ProveedorService:
 
         try:
             self.repo.update(r, payload, user_id)
+            self.repo.replace_category_assignments(r.id_proveedor, payload.get('categoria_ids', []), user_id)
             self.db.commit()
             self.db.refresh(r)
             return self._to_dict(r)
@@ -66,6 +68,32 @@ class ProveedorService:
         self.db.commit()
         self.db.refresh(r)
         return self._to_dict(r)
+
+    def actualizar_categorias(self, id_proveedor: int, categoria_ids: list[int], user_id: int) -> dict:
+        r = self.repo.get(id_proveedor)
+        if not r:
+            raise DominioError('RESOURCE_NOT_FOUND', 'Proveedor no encontrado.', 404)
+        categoria_ids = self._normalizar_categoria_ids(categoria_ids)
+        existentes = self.repo.categorias_existentes(categoria_ids)
+        faltantes = sorted(set(categoria_ids) - existentes)
+        if faltantes:
+            raise DominioError('VALIDATION_ERROR', f'Categorías no válidas: {faltantes}', 400)
+        self.repo.replace_category_assignments(id_proveedor, categoria_ids, user_id)
+        self.db.commit()
+        self.db.refresh(r)
+        return self._to_dict(r)
+
+    def listar_categorias(self, id_proveedor: int) -> dict:
+        r = self.repo.get(id_proveedor)
+        if not r:
+            raise DominioError('RESOURCE_NOT_FOUND', 'Proveedor no encontrado.', 404)
+        categoria_ids = self.repo.list_active_category_ids(id_proveedor)
+        categorias = self.repo.list_category_names(categoria_ids)
+        return {
+            'id_proveedor': id_proveedor,
+            'categoria_ids': categoria_ids,
+            'categorias': categorias,
+        }
 
     def consultar_documento_para_proveedor(self, documento: str) -> dict:
         documento_normalizado, tipo_documento = self._normalizar_y_validar_documento(documento)
@@ -159,9 +187,15 @@ class ProveedorService:
         payload['distrito'] = distrito or None
         payload['estado_contribuyente'] = estado_contribuyente or None
         payload['condicion_contribuyente'] = condicion_contribuyente or None
+        payload['categoria_ids'] = self._normalizar_categoria_ids(payload.get('categoria_ids', []))
 
         # Compatibilidad temporal con el campo antiguo ruc
         payload['ruc'] = numero_documento
+
+        existentes = self.repo.categorias_existentes(payload['categoria_ids'])
+        faltantes = sorted(set(payload['categoria_ids']) - existentes)
+        if faltantes:
+            raise DominioError('VALIDATION_ERROR', f'Categorías no válidas: {faltantes}', 400)
 
     def _validar_duplicados(self, payload: dict, id_actual: int | None = None) -> None:
         target_razon = normalize_text(payload.get('razon_social'))
@@ -191,6 +225,8 @@ class ProveedorService:
         )
 
     def _to_dict(self, r) -> dict:
+        categoria_ids = self.repo.list_active_category_ids(r.id_proveedor)
+        categorias = self.repo.list_category_names(categoria_ids)
         return {
             'id_proveedor': r.id_proveedor,
             'razon_social': r.razon_social,
@@ -206,6 +242,8 @@ class ProveedorService:
             'estado_contribuyente': r.estado_contribuyente,
             'condicion_contribuyente': r.condicion_contribuyente,
             'estado': r.estado,
+            'categoria_ids': categoria_ids,
+            'categorias': categorias,
             # compatibilidad para pantallas antiguas
             'ruc': r.numero_documento,
         }
@@ -220,3 +258,17 @@ class ProveedorService:
             )
         tipo = 'DNI' if len(limpio) == 8 else 'RUC'
         return limpio, tipo
+
+    def _normalizar_categoria_ids(self, categoria_ids: list[int] | None) -> list[int]:
+        if not categoria_ids:
+            return []
+        cleaned = []
+        for raw in categoria_ids:
+            try:
+                value = int(raw)
+            except (TypeError, ValueError):
+                raise DominioError('VALIDATION_ERROR', 'categoria_ids contiene valores no válidos.', 400)
+            if value <= 0:
+                raise DominioError('VALIDATION_ERROR', 'categoria_ids contiene valores no válidos.', 400)
+            cleaned.append(value)
+        return sorted(set(cleaned))
