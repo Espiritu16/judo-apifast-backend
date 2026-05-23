@@ -159,6 +159,187 @@ Documentacion interactiva:
 - Swagger UI: `http://localhost:8000/docs`
 - Healthcheck: `http://localhost:8000/salud`
 
-## 12. Base de datos
+## 12. Modelo logico de base de datos (JUDO)
+```mermaid
+erDiagram
+    USUARIO {
+        BIGINT id_usuario PK
+        VARCHAR nombre_usuario UK
+        VARCHAR nombre_completo
+        VARCHAR clave_hash
+        ENUM rol "DUEÑA | EMPLEADO"
+        ENUM estado "ACTIVO | INACTIVO"
+        DATETIME fecha_creacion
+        BIGINT creado_por FK
+        DATETIME fecha_edicion
+        BIGINT editado_por FK
+        DATETIME fecha_inactivacion
+        BIGINT inactivado_por FK
+        VARCHAR motivo_inactivacion
+    }
+
+    CATEGORIA {
+        BIGINT id_categoria PK
+        VARCHAR nombre_categoria UK
+        VARCHAR descripcion
+        ENUM estado "ACTIVO | INACTIVO"
+        DATETIME fecha_creacion
+        BIGINT creado_por FK
+        DATETIME fecha_edicion
+        BIGINT editado_por FK
+    }
+
+    PROVEEDOR {
+        BIGINT id_proveedor PK
+        VARCHAR razon_social
+        VARCHAR ruc UK
+        VARCHAR telefono
+        VARCHAR correo_electronico
+        ENUM estado "ACTIVO | INACTIVO"
+        DATETIME fecha_creacion
+        BIGINT creado_por FK
+        DATETIME fecha_edicion
+        BIGINT editado_por FK
+    }
+
+    PRODUCTO {
+        BIGINT id_producto PK
+        VARCHAR codigo_producto UK
+        VARCHAR nombre_producto
+        VARCHAR descripcion
+        BIGINT id_categoria FK
+        VARCHAR unidad_medida
+        DECIMAL costo_unitario_actual
+        ENUM estado "ACTIVO | INACTIVO"
+        DATETIME fecha_creacion
+        BIGINT creado_por FK
+        DATETIME fecha_edicion
+        BIGINT editado_por FK
+    }
+
+    PARAMETRO_INVENTARIO {
+        BIGINT id_producto PK,FK
+        DECIMAL stock_actual
+        DECIMAL stock_minimo
+        DECIMAL stock_maximo
+        DECIMAL consumo_promedio_diario
+        DECIMAL stock_seguridad
+        INT tiempo_reposicion_dias
+        DECIMAL punto_reorden
+        DATETIME fecha_creacion
+        BIGINT creado_por FK
+        DATETIME fecha_edicion
+        BIGINT editado_por FK
+    }
+
+    MOVIMIENTO_INVENTARIO {
+        BIGINT id_movimiento PK
+        BIGINT id_producto FK
+        DATETIME fecha_movimiento
+        ENUM tipo_movimiento "ENTRADA | SALIDA | MERMA | AJUSTE_POSITIVO | AJUSTE_NEGATIVO"
+        DECIMAL cantidad
+        DECIMAL costo_unitario
+        VARCHAR motivo
+        VARCHAR referencia
+        VARCHAR observacion
+        DATETIME fecha_creacion
+        BIGINT creado_por FK
+    }
+
+    REPOSICION {
+        BIGINT id_reposicion PK
+        VARCHAR codigo_reposicion UK
+        BIGINT id_proveedor FK
+        DATETIME fecha_solicitud
+        DATETIME fecha_recepcion
+        ENUM estado_reposicion "BORRADOR | SOLICITADA | RECIBIDA | CERRADA | ANULADA"
+        VARCHAR observacion
+        DATETIME fecha_creacion
+        BIGINT creado_por FK
+        DATETIME fecha_edicion
+        BIGINT editado_por FK
+    }
+
+    DETALLE_REPOSICION {
+        BIGINT id_detalle_reposicion PK
+        BIGINT id_reposicion FK
+        BIGINT id_producto FK
+        DECIMAL cantidad_solicitada
+        DECIMAL cantidad_recibida
+        DECIMAL costo_unitario
+        DECIMAL subtotal
+        DATETIME fecha_creacion
+        BIGINT creado_por FK
+        DATETIME fecha_edicion
+        BIGINT editado_por FK
+    }
+
+    CATEGORIA ||--o{ PRODUCTO : "clasifica"
+    PRODUCTO ||--|| PARAMETRO_INVENTARIO : "parametriza"
+    PRODUCTO ||--o{ MOVIMIENTO_INVENTARIO : "registra"
+    PROVEEDOR ||--o{ REPOSICION : "abastece"
+    REPOSICION ||--o{ DETALLE_REPOSICION : "detalla"
+    PRODUCTO ||--o{ DETALLE_REPOSICION : "incluye"
+    USUARIO ||--o{ CATEGORIA : "crea/edita"
+    USUARIO ||--o{ PROVEEDOR : "crea/edita"
+    USUARIO ||--o{ PRODUCTO : "crea/edita"
+    USUARIO ||--o{ MOVIMIENTO_INVENTARIO : "registra"
+    USUARIO ||--o{ REPOSICION : "crea/edita"
+```
+
+## 13. Diagrama de arquitectura (JUDO)
+```mermaid
+flowchart TB
+  subgraph C1["Capa Cliente"]
+    FE["Frontend Angular<br/>Standalone Components + Router"]
+  end
+
+  subgraph C2["Capa API (FastAPI)"]
+    API["Rutas REST<br/>/auth, /categorias, /productos, /proveedores,<br/>/inventario, /movimientos, /reposiciones, /reportes"]
+    SEC["Seguridad<br/>JWT Bearer + RBAC<br/>401/403 respuesta estandar"]
+    APP["Servicios de negocio<br/>Reglas logisticas y validaciones"]
+  end
+
+  subgraph C3["Capa Persistencia"]
+    ORM["SQLAlchemy Repositories"]
+    DB[("MySQL judo_db")]
+  end
+
+  subgraph M["Modulos de negocio"]
+    AUT["Autenticacion<br/>Login + Me"]
+    CAT["Categorias<br/>CRUD + Inactivacion"]
+    PRO["Productos<br/>CRUD + Parametro inventario"]
+    PRV["Proveedores<br/>CRUD + Inactivacion"]
+    INV["Inventario<br/>Stock + Critico + Parametros"]
+    MOV["Movimientos<br/>Entradas/Salidas/Ajustes/Mermas"]
+    REP["Reposiciones<br/>Flujo de estados + Recepcion"]
+    RPT["Reportes<br/>Valorizacion + Rotacion + Stock critico"]
+  end
+
+  FE -->|"HTTPS JSON"| API
+  API --> SEC
+  SEC --> APP
+
+  APP --> AUT
+  APP --> CAT
+  APP --> PRO
+  APP --> PRV
+  APP --> INV
+  APP --> MOV
+  APP --> REP
+  APP --> RPT
+
+  AUT --> ORM
+  CAT --> ORM
+  PRO --> ORM
+  PRV --> ORM
+  INV --> ORM
+  MOV --> ORM
+  REP --> ORM
+  RPT --> ORM
+  ORM --> DB
+```
+
+## 14. Base de datos
 - Script MySQL de referencia en: `/Users/sankef/LENGUAJEPROGRAMACION/INFORMES/mySql.sql`
 - La tabla `usuario` debe incluir `clave_hash` para login.
