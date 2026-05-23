@@ -16,6 +16,9 @@ class ProveedorRepository:
         return self.db.execute(select(Proveedor).order_by(Proveedor.id_proveedor.desc())).scalars().all()
     def get(self, id_proveedor: int) -> Proveedor | None:
         return self.db.get(Proveedor, id_proveedor)
+    def exists_by_document(self, document: str) -> bool:
+        stmt = select(Proveedor.id_proveedor).where(Proveedor.ruc == document).limit(1)
+        return self.db.execute(stmt).first() is not None
     def update(self, item: Proveedor, data: dict, user_id: int) -> Proveedor:
         for k, v in data.items():
             setattr(item, k, v)

@@ -1,6 +1,12 @@
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
+from app.modules.proveedores.factiliza_client import FactilizaClient
 from app.modules.proveedores.repository import ProveedorRepository
+from app.modules.proveedores.schema import (
+    ConsultaDocumentoResponseDto,
+    FactilizaDniResponseDto,
+    FactilizaRucResponseDto,
+)
 from app.shared.exceptions import DominioError
 from app.shared.normalization import normalize_text
 
@@ -60,14 +66,65 @@ class ProveedorService:
         self.db.refresh(r)
         return self._to_dict(r)
 
+    def consultar_documento_para_proveedor(self, documento: str) -> dict:
+        documento_normalizado, tipo_documento = self._normalizar_y_validar_documento(documento)
+
+        if self.repo.exists_by_document(documento_normalizado):
+            raise DominioError('DUPLICATE_RESOURCE', 'Ya existe un proveedor registrado con este documento.', 409)
+
+        factiliza_client = FactilizaClient()
+        if tipo_documento == 'DNI':
+            factiliza_raw = factiliza_client.consultar_dni(documento_normalizado)
+            factiliza_data = FactilizaDniResponseDto.model_validate(factiliza_raw).data
+            if not factiliza_data or not factiliza_data.numero:
+                raise DominioError('RESOURCE_NOT_FOUND', 'No se encontraron datos para el documento ingresado.', 404)
+
+            result = ConsultaDocumentoResponseDto(
+                tipo_documento='DNI',
+                numero_documento=factiliza_data.numero,
+                nombre_o_razon_social=factiliza_data.nombre_completo or '',
+                nombres=factiliza_data.nombres,
+                apellido_paterno=factiliza_data.apellido_paterno,
+                apellido_materno=factiliza_data.apellido_materno,
+                direccion=factiliza_data.direccion,
+                direccion_completa=factiliza_data.direccion_completa,
+                departamento=factiliza_data.departamento,
+                provincia=factiliza_data.provincia,
+                distrito=factiliza_data.distrito,
+            )
+            return result.model_dump()
+
+        factiliza_raw = factiliza_client.consultar_ruc(documento_normalizado)
+        factiliza_data = FactilizaRucResponseDto.model_validate(factiliza_raw).data
+        if not factiliza_data or not factiliza_data.numero:
+            raise DominioError('RESOURCE_NOT_FOUND', 'No se encontraron datos para el documento ingresado.', 404)
+
+        result = ConsultaDocumentoResponseDto(
+            tipo_documento='RUC',
+            numero_documento=factiliza_data.numero,
+            nombre_o_razon_social=factiliza_data.nombre_o_razon_social or '',
+            direccion=factiliza_data.direccion,
+            direccion_completa=factiliza_data.direccion_completa,
+            departamento=factiliza_data.departamento,
+            provincia=factiliza_data.provincia,
+            distrito=factiliza_data.distrito,
+            estado_contribuyente=factiliza_data.estado,
+            condicion_contribuyente=factiliza_data.condicion,
+        )
+        return result.model_dump()
+
     def _validar_payload(self, payload: dict) -> None:
         razon = (payload.get('razon_social') or '').strip()
         if len(razon) < 3 or len(razon) > 120:
             raise DominioError('VALIDATION_ERROR', 'La razón social debe tener entre 3 y 120 caracteres.', 400)
 
         ruc = (payload.get('ruc') or '').strip()
-        if ruc and (not ruc.isdigit() or len(ruc) != 11):
-            raise DominioError('VALIDATION_ERROR', 'El RUC debe tener exactamente 11 dígitos.', 400)
+        if ruc and (not ruc.isdigit() or len(ruc) not in (8, 11)):
+            raise DominioError(
+                'VALIDATION_ERROR',
+                'El documento debe tener 8 dígitos para DNI o 11 dígitos para RUC.',
+                400,
+            )
 
         telefono = (payload.get('telefono') or '').strip()
         if len(telefono) > 20:
@@ -110,3 +167,14 @@ class ProveedorService:
             'correo_electronico': r.correo_electronico,
             'estado': r.estado,
         }
+
+    def _normalizar_y_validar_documento(self, documento: str) -> tuple[str, str]:
+        limpio = ''.join(ch for ch in (documento or '').strip() if ch.isdigit())
+        if not limpio or len(limpio) not in (8, 11):
+            raise DominioError(
+                'VALIDATION_ERROR',
+                'El documento debe tener 8 dígitos para DNI o 11 dígitos para RUC.',
+                400,
+            )
+        tipo = 'DNI' if len(limpio) == 8 else 'RUC'
+        return limpio, tipo

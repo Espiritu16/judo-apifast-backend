@@ -7,6 +7,7 @@ from app.modules.productos.router import router as productos_router
 from app.modules.proveedores.router import router as proveedores_router
 from app.modules.reportes.router import router as reportes_router
 from app.modules.reposiciones.router import router as reposiciones_router
+from app.modules.usuarios.router import router as usuarios_router
 api_router = APIRouter()
 api_router.include_router(autenticacion_router, prefix='/auth', tags=['auth'])
 api_router.include_router(categorias_router, prefix='/categorias', tags=['categorias'])
@@ -16,3 +17,4 @@ api_router.include_router(inventario_router, prefix='/inventario', tags=['invent
 api_router.include_router(movimientos_router, prefix='/movimientos', tags=['movimientos'])
 api_router.include_router(reposiciones_router, prefix='/reposiciones', tags=['reposiciones'])
 api_router.include_router(reportes_router, prefix='/reportes', tags=['reportes'])
+api_router.include_router(usuarios_router, prefix='/usuarios', tags=['usuarios'])

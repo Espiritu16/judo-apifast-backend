@@ -15,7 +15,4 @@ def listar_movimientos(db: Session = Depends(get_db), _: Usuario = Depends(get_c
     return respuesta_ok('Movimientos listados', MovimientoServ(db).listar_movimientos())
 @router.get('/{id_movimiento}')
 def obtener_movimiento(id_movimiento: int, db: Session = Depends(get_db), _: Usuario = Depends(get_current_user)):
-    data = MovimientoServ(db).obtener_movimiento(id_movimiento)
-    if not data:
-        return respuesta_ok('Movimiento no encontrado', None)
-    return respuesta_ok('Movimiento encontrado', data)
+    return respuesta_ok('Movimiento encontrado', MovimientoServ(db).obtener_movimiento(id_movimiento))

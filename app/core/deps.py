@@ -30,8 +30,14 @@ def get_current_user(
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Usuario no valido')
     return user
 def require_roles(*allowed: str):
+    normalized_allowed = {
+        role.strip().upper().replace('DUENA', 'DUEÑA').replace('ADMINISTRADOR', 'DUEÑA')
+        for role in allowed
+    }
+
     def _check(user: Usuario = Depends(get_current_user)) -> Usuario:
-        if user.rol not in allowed:
+        user_role = user.rol.strip().upper().replace('DUENA', 'DUEÑA').replace('ADMINISTRADOR', 'DUEÑA')
+        if user_role not in normalized_allowed:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='Sin permisos para esta operacion')
         return user
     return _check

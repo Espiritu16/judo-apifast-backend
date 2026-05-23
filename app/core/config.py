@@ -7,5 +7,8 @@ class Settings(BaseSettings):
     JWT_SECRET_KEY: str
     JWT_ALGORITHM: str = 'HS256'
     JWT_EXPIRE_MINUTES: int = 120
+    FACTILIZA_API_TOKEN: str = ''
+    FACTILIZA_API_BASE_URL: str = 'https://api.factiliza.com/v1'
+    FACTILIZA_TIMEOUT_SECONDS: float = 10.0
     model_config = SettingsConfigDict(env_file='.env', extra='ignore')
 settings = Settings()

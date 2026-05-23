@@ -163,6 +163,9 @@ DATABASE_URL=mysql+pymysql://root:TU_PASSWORD@localhost:3306/judo_db
 JWT_SECRET_KEY=tu_secret
 JWT_ALGORITHM=HS256
 JWT_EXPIRE_MINUTES=120
+FACTILIZA_API_TOKEN=tu_token_factiliza
+FACTILIZA_API_BASE_URL=https://api.factiliza.com/v1
+FACTILIZA_TIMEOUT_SECONDS=10
 ```
 
 ## 12. Ejecucion local

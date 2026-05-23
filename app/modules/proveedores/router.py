@@ -14,6 +14,12 @@ def crear_proveedor(payload: ProveedorCreate, db: Session = Depends(get_db), use
 @router.get('')
 def listar_proveedores(db: Session = Depends(get_db), _: Usuario = Depends(get_current_user)):
     return respuesta_ok('Proveedores listados', ProveedorServ(db).listar_proveedores())
+@router.get('/consulta-documento/{documento}')
+def consultar_documento_proveedor(documento: str, db: Session = Depends(get_db), _: Usuario = Depends(get_current_user)):
+    return respuesta_ok(
+        'Consulta de documento exitosa',
+        ProveedorServ(db).consultar_documento_para_proveedor(documento),
+    )
 #API para obtener 1 proveedor en base a su ID
 @router.get('/{id_proveedor}')
 def obtener_proveedor(id_proveedor: int, db: Session = Depends(get_db), _: Usuario = Depends(get_current_user)):
