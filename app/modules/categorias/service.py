@@ -11,7 +11,8 @@ class CategoriaService:
         try:
             item = self.repo.create(payload, user_id)
             self.db.commit()
-            return {'id_categoria': item.id_categoria}
+            self.db.refresh(item)
+            return self._to_dict(item)
         except IntegrityError as exc:
             self.db.rollback()
             raise DominioError('DATO_DUPLICADO', 'Categoria duplicada', 409) from exc
@@ -33,7 +34,8 @@ class CategoriaService:
         try:
             self.repo.update(r, payload, user_id)
             self.db.commit()
-            return {'id_categoria': id_categoria}
+            self.db.refresh(r)
+            return self._to_dict(r)
         except IntegrityError as exc:
             self.db.rollback()
             raise DominioError('DATO_DUPLICADO', 'Ya existe una categoria con ese nombre', 409) from exc
@@ -43,4 +45,13 @@ class CategoriaService:
             raise DominioError('CATEGORIA_NO_ENCONTRADA', 'Categoria no encontrada', 404)
         self.repo.inactivate(r, motivo, user_id)
         self.db.commit()
-        return {'id_categoria': id_categoria}
+        self.db.refresh(r)
+        return self._to_dict(r)
+
+    def _to_dict(self, r) -> dict:
+        return {
+            'id_categoria': r.id_categoria,
+            'nombre_categoria': r.nombre_categoria,
+            'descripcion': r.descripcion,
+            'estado': r.estado,
+        }

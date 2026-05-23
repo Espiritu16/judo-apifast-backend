@@ -17,7 +17,8 @@ class ProductoService:
         try:
             item = self.repo.create(payload, user_id)
             self.db.commit()
-            return {'id_producto': item.id_producto}
+            self.db.refresh(item)
+            return self._to_dict(item)
         except IntegrityError as exc:
             self.db.rollback()
             raise DominioError('DATO_DUPLICADO', 'Producto duplicado', 409) from exc
@@ -59,11 +60,25 @@ class ProductoService:
             raise DominioError('CATEGORIA_NO_ENCONTRADA', 'Categoria no encontrada o inactiva', 404)
         self.repo.update(r, payload, user_id)
         self.db.commit()
-        return {'id_producto': id_producto}
+        self.db.refresh(r)
+        return self._to_dict(r)
     def inactivar_producto(self, id_producto: int, motivo: str, user_id: int) -> dict:
         r = self.repo.get(id_producto)
         if not r:
             raise DominioError('PRODUCTO_NO_ENCONTRADO', 'Producto no encontrado', 404)
         self.repo.inactivate(r, motivo, user_id)
         self.db.commit()
-        return {'id_producto': id_producto}
+        self.db.refresh(r)
+        return self._to_dict(r)
+
+    def _to_dict(self, r) -> dict:
+        return {
+            'id_producto': r.id_producto,
+            'codigo_producto': r.codigo_producto,
+            'nombre_producto': r.nombre_producto,
+            'descripcion': r.descripcion,
+            'id_categoria': r.id_categoria,
+            'unidad_medida': r.unidad_medida,
+            'costo_unitario_actual': float(r.costo_unitario_actual),
+            'estado': r.estado,
+        }
