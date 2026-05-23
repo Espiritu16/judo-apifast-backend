@@ -3,16 +3,32 @@ from pydantic import BaseModel, ConfigDict, Field
 
 class ProveedorCreate(BaseModel):
     razon_social: str = Field(min_length=3, max_length=120)
-    ruc: str | None = Field(default=None, min_length=8, max_length=11)
+    tipo_documento: str = Field(min_length=3, max_length=3)
+    numero_documento: str = Field(min_length=8, max_length=11)
+    nombre_completo_persona: str | None = Field(default=None, max_length=180)
     telefono: str | None = Field(default=None, max_length=20)
     correo_electronico: str | None = Field(default=None, max_length=120)
+    direccion: str | None = Field(default=None, max_length=255)
+    departamento: str | None = Field(default=None, max_length=80)
+    provincia: str | None = Field(default=None, max_length=80)
+    distrito: str | None = Field(default=None, max_length=80)
+    estado_contribuyente: str | None = Field(default=None, max_length=50)
+    condicion_contribuyente: str | None = Field(default=None, max_length=50)
 
 
 class ProveedorUpdate(BaseModel):
     razon_social: str = Field(min_length=3, max_length=120)
-    ruc: str | None = Field(default=None, min_length=8, max_length=11)
+    tipo_documento: str = Field(min_length=3, max_length=3)
+    numero_documento: str = Field(min_length=8, max_length=11)
+    nombre_completo_persona: str | None = Field(default=None, max_length=180)
     telefono: str | None = Field(default=None, max_length=20)
     correo_electronico: str | None = Field(default=None, max_length=120)
+    direccion: str | None = Field(default=None, max_length=255)
+    departamento: str | None = Field(default=None, max_length=80)
+    provincia: str | None = Field(default=None, max_length=80)
+    distrito: str | None = Field(default=None, max_length=80)
+    estado_contribuyente: str | None = Field(default=None, max_length=50)
+    condicion_contribuyente: str | None = Field(default=None, max_length=50)
 
 
 class InactivarPayload(BaseModel):
@@ -22,9 +38,17 @@ class InactivarPayload(BaseModel):
 class ProveedorOut(BaseModel):
     id_proveedor: int
     razon_social: str
-    ruc: str | None
+    tipo_documento: str
+    numero_documento: str
+    nombre_completo_persona: str | None
     telefono: str | None
     correo_electronico: str | None
+    direccion: str | None
+    departamento: str | None
+    provincia: str | None
+    distrito: str | None
+    estado_contribuyente: str | None
+    condicion_contribuyente: str | None
     estado: str
     model_config = ConfigDict(from_attributes=True)
 

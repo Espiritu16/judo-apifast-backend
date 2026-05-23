@@ -1,5 +1,6 @@
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
+
 from app.modules.proveedores.factiliza_client import FactilizaClient
 from app.modules.proveedores.repository import ProveedorRepository
 from app.modules.proveedores.schema import (
@@ -118,13 +119,18 @@ class ProveedorService:
         if len(razon) < 3 or len(razon) > 120:
             raise DominioError('VALIDATION_ERROR', 'La razón social debe tener entre 3 y 120 caracteres.', 400)
 
-        ruc = (payload.get('ruc') or '').strip()
-        if ruc and (not ruc.isdigit() or len(ruc) not in (8, 11)):
-            raise DominioError(
-                'VALIDATION_ERROR',
-                'El documento debe tener 8 dígitos para DNI o 11 dígitos para RUC.',
-                400,
-            )
+        tipo_documento = (payload.get('tipo_documento') or '').strip().upper()
+        numero_documento = ''.join(ch for ch in (payload.get('numero_documento') or '').strip() if ch.isdigit())
+        if tipo_documento not in ('DNI', 'RUC'):
+            raise DominioError('VALIDATION_ERROR', 'El tipo de documento debe ser DNI o RUC.', 400)
+        if tipo_documento == 'DNI' and len(numero_documento) != 8:
+            raise DominioError('VALIDATION_ERROR', 'El documento debe tener 8 dígitos para DNI o 11 dígitos para RUC.', 400)
+        if tipo_documento == 'RUC' and len(numero_documento) != 11:
+            raise DominioError('VALIDATION_ERROR', 'El documento debe tener 8 dígitos para DNI o 11 dígitos para RUC.', 400)
+
+        nombre_completo_persona = (payload.get('nombre_completo_persona') or '').strip()
+        if tipo_documento == 'DNI' and not nombre_completo_persona:
+            nombre_completo_persona = razon
 
         telefono = (payload.get('telefono') or '').strip()
         if len(telefono) > 20:
@@ -134,38 +140,74 @@ class ProveedorService:
         if len(correo) > 120:
             raise DominioError('VALIDATION_ERROR', 'El correo no puede superar 120 caracteres.', 400)
 
+        direccion = (payload.get('direccion') or '').strip()
+        departamento = (payload.get('departamento') or '').strip()
+        provincia = (payload.get('provincia') or '').strip()
+        distrito = (payload.get('distrito') or '').strip()
+        estado_contribuyente = (payload.get('estado_contribuyente') or '').strip()
+        condicion_contribuyente = (payload.get('condicion_contribuyente') or '').strip()
+
         payload['razon_social'] = razon
-        payload['ruc'] = ruc or None
+        payload['tipo_documento'] = tipo_documento
+        payload['numero_documento'] = numero_documento
+        payload['nombre_completo_persona'] = nombre_completo_persona or None
         payload['telefono'] = telefono or None
         payload['correo_electronico'] = correo or None
+        payload['direccion'] = direccion or None
+        payload['departamento'] = departamento or None
+        payload['provincia'] = provincia or None
+        payload['distrito'] = distrito or None
+        payload['estado_contribuyente'] = estado_contribuyente or None
+        payload['condicion_contribuyente'] = condicion_contribuyente or None
+
+        # Compatibilidad temporal con el campo antiguo ruc
+        payload['ruc'] = numero_documento
 
     def _validar_duplicados(self, payload: dict, id_actual: int | None = None) -> None:
         target_razon = normalize_text(payload.get('razon_social'))
-        target_ruc = (payload.get('ruc') or '').strip()
+        target_doc = (payload.get('numero_documento') or '').strip()
         for prov in self.repo.list_all():
             if id_actual and prov.id_proveedor == id_actual:
                 continue
             if normalize_text(prov.razon_social) == target_razon:
                 raise DominioError('DUPLICATE_RESOURCE', f'El proveedor "{prov.razon_social}" ya existe.', 409)
-            if target_ruc and prov.ruc and prov.ruc.strip() == target_ruc:
-                raise DominioError('DUPLICATE_RESOURCE', f'El RUC {target_ruc} ya está registrado.', 409)
+            if target_doc and prov.numero_documento and prov.numero_documento.strip() == target_doc:
+                raise DominioError('DUPLICATE_RESOURCE', f'El documento {target_doc} ya está registrado.', 409)
 
     def _is_same_proveedor(self, actual, payload: dict) -> bool:
         return (
             normalize_text(actual.razon_social) == normalize_text(payload.get('razon_social'))
-            and normalize_text(actual.ruc) == normalize_text(payload.get('ruc'))
+            and normalize_text(actual.tipo_documento) == normalize_text(payload.get('tipo_documento'))
+            and normalize_text(actual.numero_documento) == normalize_text(payload.get('numero_documento'))
+            and normalize_text(actual.nombre_completo_persona) == normalize_text(payload.get('nombre_completo_persona'))
             and normalize_text(actual.telefono) == normalize_text(payload.get('telefono'))
             and normalize_text(actual.correo_electronico) == normalize_text(payload.get('correo_electronico'))
+            and normalize_text(actual.direccion) == normalize_text(payload.get('direccion'))
+            and normalize_text(actual.departamento) == normalize_text(payload.get('departamento'))
+            and normalize_text(actual.provincia) == normalize_text(payload.get('provincia'))
+            and normalize_text(actual.distrito) == normalize_text(payload.get('distrito'))
+            and normalize_text(actual.estado_contribuyente) == normalize_text(payload.get('estado_contribuyente'))
+            and normalize_text(actual.condicion_contribuyente) == normalize_text(payload.get('condicion_contribuyente'))
         )
 
     def _to_dict(self, r) -> dict:
         return {
             'id_proveedor': r.id_proveedor,
             'razon_social': r.razon_social,
-            'ruc': r.ruc,
+            'tipo_documento': r.tipo_documento,
+            'numero_documento': r.numero_documento,
+            'nombre_completo_persona': r.nombre_completo_persona,
             'telefono': r.telefono,
             'correo_electronico': r.correo_electronico,
+            'direccion': r.direccion,
+            'departamento': r.departamento,
+            'provincia': r.provincia,
+            'distrito': r.distrito,
+            'estado_contribuyente': r.estado_contribuyente,
+            'condicion_contribuyente': r.condicion_contribuyente,
             'estado': r.estado,
+            # compatibilidad para pantallas antiguas
+            'ruc': r.numero_documento,
         }
 
     def _normalizar_y_validar_documento(self, documento: str) -> tuple[str, str]:
