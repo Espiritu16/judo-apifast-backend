@@ -358,6 +358,41 @@ flowchart TB
   ORM --> DB
 ```
 
-## 15. Base de datos
+
+## 15. Requerimientos funcionales
+| ID | Requerimiento | Descripcion |
+|---|---|---|
+| RF-01 | Autenticacion de usuarios | El sistema debe permitir iniciar sesion con usuario y contrasena validando `clave_hash` y emitiendo JWT. |
+| RF-02 | Consulta de usuario autenticado | El sistema debe exponer `/auth/me` para obtener datos del usuario autenticado. |
+| RF-03 | Gestion de categorias | Permitir crear, listar, obtener, actualizar e inactivar categorias. |
+| RF-04 | Gestion de productos | Permitir crear, listar, obtener, actualizar e inactivar productos. |
+| RF-05 | Gestion de proveedores | Permitir crear, listar, obtener, actualizar e inactivar proveedores. |
+| RF-06 | Parametrizacion de inventario | Permitir actualizar parametros por producto (`stock_minimo`, `stock_maximo`, `consumo_promedio_diario`, `stock_seguridad`, `tiempo_reposicion_dias`). |
+| RF-07 | Consulta de stock | Permitir consultar stock general y filtrar por nombre de producto. |
+| RF-08 | Consulta de stock critico | Permitir listar productos con `stock_actual <= stock_minimo` y mostrar cantidad sugerida. |
+| RF-09 | Registro de movimientos | Permitir registrar movimientos de inventario con tipos validos y reglas de negocio. |
+| RF-10 | Control de stock negativo | Bloquear salidas/mermas/ajustes negativos que dejen stock menor que cero. |
+| RF-11 | Flujo de reposiciones | Permitir crear reposiciones con detalle y gestionar estados `BORRADOR`, `SOLICITADA`, `RECIBIDA`, `CERRADA`, `ANULADA`. |
+| RF-12 | Recepcion de reposiciones | Al recibir reposicion, registrar movimientos de entrada por cada detalle y actualizar stock. |
+| RF-13 | Reporte de valorizacion | Exponer reporte valorizado por producto y total general. |
+| RF-14 | Reporte de rotacion | Exponer rotacion por producto en base a salidas acumuladas y stock actual. |
+| RF-15 | Reporte de stock critico | Exponer listado de productos en condicion critica de inventario. |
+
+## 16. Requerimientos no funcionales
+| ID | Requerimiento | Descripcion |
+|---|---|---|
+| RNF-01 | Seguridad de autenticacion | JWT firmado con secreto y algoritmo configurables por entorno. |
+| RNF-02 | Control de acceso por roles | Aplicar RBAC en endpoints sensibles con roles `DUEÑA` y `EMPLEADO`. |
+| RNF-03 | Seguridad de contrasenas | Almacenar contrasenas hasheadas (`clave_hash`), nunca en texto plano. |
+| RNF-04 | Integridad de datos | Usar PK/FK, checks y validaciones de servicio para consistencia de dominio. |
+| RNF-05 | Consistencia de errores | Responder errores de negocio con codigos y mensajes estandarizados. |
+| RNF-06 | Configuracion por entorno | Gestionar conexion BD, JWT y parametros via variables de entorno. |
+| RNF-07 | Mantenibilidad | Mantener arquitectura modular por feature (`autenticacion`, `inventario`, `movimientos`, etc.). |
+| RNF-08 | Trazabilidad basica | Registrar campos de auditoria (`creado_por`, `fecha_creacion`, `editado_por`, `fecha_edicion`) en entidades clave. |
+| RNF-09 | Compatibilidad API | Mantener prefijo de versionado `/api/v1` para estabilidad de clientes. |
+| RNF-10 | Documentacion operativa | Exponer documentacion interactiva en Swagger (`/docs`) para pruebas y consumo de API. |
+
+
+## 17. Base de datos
 - Script MySQL de referencia en: `/Users/sankef/LENGUAJEPROGRAMACION/INFORMES/mySql.sql`
 - La tabla `usuario` debe incluir `clave_hash` para login.
