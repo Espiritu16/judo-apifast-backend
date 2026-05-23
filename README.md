@@ -134,7 +134,25 @@ Base URL: `/api/v1`
 - Control de acceso por rol (`require_roles`).
 - Contrasena almacenada hasheada en `usuario.clave_hash`.
 
-## 10. Configuracion por entorno
+## 10. Roles y permisos
+| Accion | DUEÑA | EMPLEADO |
+|---|---|---|
+| Iniciar sesion (`/auth/login`) y ver usuario actual (`/auth/me`) | ✅ | ✅ |
+| Registrar movimientos de inventario | ✅ | ✅ |
+| Consultar stock y stock critico | ✅ | ✅ |
+| Crear reposicion en BORRADOR | ✅ | ✅ |
+| Cambiar reposicion a `SOLICITADA` o `RECIBIDA` | ✅ | ✅ |
+| Crear categorias | ✅ | ❌ |
+| Actualizar/inactivar categorias | ✅ | ❌ |
+| Crear productos | ✅ | ❌ |
+| Actualizar/inactivar productos | ✅ | ❌ |
+| Crear proveedores | ✅ | ❌ |
+| Actualizar/inactivar proveedores | ✅ | ❌ |
+| Parametrizar inventario (`/inventario/parametros/{id_producto}`) | ✅ | ❌ |
+| Cambiar reposicion a `ANULADA` o `CERRADA` | ✅ | ❌ |
+| Consultar reportes (`/reportes/*`) | ✅ | ✅ |
+
+## 11. Configuracion por entorno
 Variables principales en `.env`:
 
 ```env
@@ -147,7 +165,7 @@ JWT_ALGORITHM=HS256
 JWT_EXPIRE_MINUTES=120
 ```
 
-## 11. Ejecucion local
+## 12. Ejecucion local
 ```bash
 python -m venv .venv
 source .venv/bin/activate
@@ -159,7 +177,7 @@ Documentacion interactiva:
 - Swagger UI: `http://localhost:8000/docs`
 - Healthcheck: `http://localhost:8000/salud`
 
-## 12. Modelo logico de base de datos (JUDO)
+## 13. Modelo logico de base de datos (JUDO)
 ```mermaid
 erDiagram
     USUARIO {
@@ -287,7 +305,7 @@ erDiagram
     USUARIO ||--o{ REPOSICION : "crea/edita"
 ```
 
-## 13. Diagrama de arquitectura (JUDO)
+## 14. Diagrama de arquitectura (JUDO)
 ```mermaid
 flowchart TB
   subgraph C1["Capa Cliente"]
@@ -340,6 +358,6 @@ flowchart TB
   ORM --> DB
 ```
 
-## 14. Base de datos
+## 15. Base de datos
 - Script MySQL de referencia en: `/Users/sankef/LENGUAJEPROGRAMACION/INFORMES/mySql.sql`
 - La tabla `usuario` debe incluir `clave_hash` para login.
