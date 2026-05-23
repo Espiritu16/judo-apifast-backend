@@ -59,4 +59,11 @@ class InventarioService:
             )
         self.repo.update_parametros(pi, payload, user_id)
         self.db.commit()  # El servicio controla cuándo se confirma la transacción
-        return {'id_producto': id_producto}
+        self.db.refresh(pi)
+        return {
+            'id_producto': pi.id_producto,
+            'stock_actual': float(pi.stock_actual),
+            'stock_minimo': float(pi.stock_minimo),
+            'stock_maximo': float(pi.stock_maximo),
+            'ultimo_movimiento': '',
+        }

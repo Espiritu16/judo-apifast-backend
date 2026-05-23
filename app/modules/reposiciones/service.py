@@ -25,7 +25,8 @@ class ReposicionesService:
             raise DominioError('PROVEEDOR_NO_ENCONTRADO', 'Proveedor no encontrado o inactivo', 404)
         repo = self.repo.create_reposicion(payload, user.id_usuario)
         self.db.commit()
-        return {'id_reposicion': repo.id_reposicion}
+        self.db.refresh(repo)
+        return self.obtener_reposicion(repo.id_reposicion)
     
     def listar_reposiciones(self) -> list[dict]:
         rows = self.repo.list_reposiciones()
@@ -73,7 +74,8 @@ class ReposicionesService:
             raise DominioError('TRANSICION_ESTADO_INVALIDA', 'No se puede cerrar sin fecha de recepcion', 409)
         self.repo.set_estado(r, payload['nuevo_estado'], payload.get('observacion'), user.id_usuario)
         self.db.commit()
-        return {'id_reposicion': r.id_reposicion, 'estado_reposicion': r.estado_reposicion}
+        self.db.refresh(r)
+        return self.obtener_reposicion(r.id_reposicion)
     
     def recibir_reposicion(self, id_reposicion: int, payload: dict, user: Usuario) -> dict:
         r = self.repo.get_reposicion(id_reposicion)
@@ -87,4 +89,5 @@ class ReposicionesService:
         if result == 'missing_param':
             raise DominioError('PARAMETRO_INVENTARIO_INVALIDO', 'Producto sin parametro inventario', 400)
         self.db.commit()
-        return {'id_reposicion': r.id_reposicion}
+        self.db.refresh(r)
+        return self.obtener_reposicion(r.id_reposicion)

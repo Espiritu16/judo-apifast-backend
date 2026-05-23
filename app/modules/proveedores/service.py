@@ -12,7 +12,8 @@ class ProveedorService:
         try:
             item = self.repo.create(payload, user_id)
             self.db.commit()
-            return {'id_proveedor': item.id_proveedor}
+            self.db.refresh(item)
+            return self._to_dict(item)
         except IntegrityError as exc:
             self.db.rollback()
             raise DominioError('DATO_DUPLICADO', 'Proveedor duplicado', 409) from exc
@@ -47,11 +48,23 @@ class ProveedorService:
             raise DominioError('PROVEEDOR_NO_ENCONTRADO', 'Proveedor no encontrado', 404)
         self.repo.update(r, payload, user_id)
         self.db.commit()
-        return {'id_proveedor': id_proveedor}
+        self.db.refresh(r)
+        return self._to_dict(r)
     def inactivar_proveedor(self, id_proveedor: int, motivo: str, user_id: int) -> dict:
         r = self.repo.get(id_proveedor)
         if not r:
             raise DominioError('PROVEEDOR_NO_ENCONTRADO', 'Proveedor no encontrado', 404)
         self.repo.inactivate(r, motivo, user_id)
         self.db.commit()
-        return {'id_proveedor': id_proveedor}
+        self.db.refresh(r)
+        return self._to_dict(r)
+
+    def _to_dict(self, r) -> dict:
+        return {
+            'id_proveedor': r.id_proveedor,
+            'razon_social': r.razon_social,
+            'ruc': r.ruc,
+            'telefono': r.telefono,
+            'correo_electronico': r.correo_electronico,
+            'estado': r.estado,
+        }
