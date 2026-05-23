@@ -209,6 +209,8 @@ class ProveedorService:
                 raise DominioError('DUPLICATE_RESOURCE', f'El documento {target_doc} ya está registrado.', 409)
 
     def _is_same_proveedor(self, actual, payload: dict) -> bool:
+        categorias_actuales = sorted(self.repo.list_active_category_ids(actual.id_proveedor))
+        categorias_payload = sorted(set(payload.get('categoria_ids', [])))
         return (
             normalize_text(actual.razon_social) == normalize_text(payload.get('razon_social'))
             and normalize_text(actual.tipo_documento) == normalize_text(payload.get('tipo_documento'))
@@ -222,6 +224,7 @@ class ProveedorService:
             and normalize_text(actual.distrito) == normalize_text(payload.get('distrito'))
             and normalize_text(actual.estado_contribuyente) == normalize_text(payload.get('estado_contribuyente'))
             and normalize_text(actual.condicion_contribuyente) == normalize_text(payload.get('condicion_contribuyente'))
+            and categorias_actuales == categorias_payload
         )
 
     def _to_dict(self, r) -> dict:
