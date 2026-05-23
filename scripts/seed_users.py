@@ -6,7 +6,7 @@ from app.modules.usuarios.model import Usuario
 SEED_USERS = [
     {
         'id_usuario': 1001,
-        'nombre_usuario': 'duena',
+        'correo': 'duena@judo.local',
         'nombre_completo': 'Duena JUDO',
         'rol': 'DUENA',
         'estado': 'ACTIVO',
@@ -14,7 +14,7 @@ SEED_USERS = [
     },
     {
         'id_usuario': 1002,
-        'nombre_usuario': 'empleado',
+        'correo': 'empleado@judo.local',
         'nombre_completo': 'Empleado JUDO',
         'rol': 'EMPLEADO',
         'estado': 'ACTIVO',
@@ -25,7 +25,7 @@ def main() -> None:
     db = SessionLocal()
     try:
         for u in SEED_USERS:
-            existing = db.execute(select(Usuario).where(Usuario.nombre_usuario == u['nombre_usuario'])).scalar_one_or_none()
+            existing = db.execute(select(Usuario).where(Usuario.correo == u['correo'])).scalar_one_or_none()
             if existing:
                 existing.nombre_completo = u['nombre_completo']
                 existing.rol = u['rol']
@@ -35,7 +35,7 @@ def main() -> None:
             db.add(
                 Usuario(
                     id_usuario=u['id_usuario'],
-                    nombre_usuario=u['nombre_usuario'],
+                    correo=u['correo'],
                     nombre_completo=u['nombre_completo'],
                     rol=u['rol'],
                     estado=u['estado'],

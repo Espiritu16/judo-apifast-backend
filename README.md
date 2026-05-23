@@ -182,7 +182,7 @@ Documentacion interactiva:
 erDiagram
     USUARIO {
         BIGINT id_usuario PK
-        VARCHAR nombre_usuario UK
+        VARCHAR correo UK
         VARCHAR nombre_completo
         VARCHAR clave_hash
         ENUM rol "DUEÑA | EMPLEADO"

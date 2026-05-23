@@ -5,7 +5,7 @@ from app.core.database import Base
 class Usuario(Base):
     __tablename__ = 'usuario'
     id_usuario: Mapped[int] = mapped_column(BigInteger, primary_key=True)
-    nombre_usuario: Mapped[str] = mapped_column(String(50), unique=True, nullable=False)
+    correo: Mapped[str] = mapped_column(String(120), unique=True, nullable=False)
     nombre_completo: Mapped[str] = mapped_column(String(120), nullable=False)
     rol: Mapped[str] = mapped_column(String(30), nullable=False)
     estado: Mapped[str] = mapped_column(String(10), nullable=False, server_default='ACTIVO')
