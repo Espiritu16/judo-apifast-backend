@@ -30,9 +30,13 @@ class CategoriaService:
         r = self.repo.get(id_categoria)
         if not r:
             raise DominioError('CATEGORIA_NO_ENCONTRADA', 'Categoria no encontrada', 404)
-        self.repo.update(r, payload, user_id)
-        self.db.commit()
-        return {'id_categoria': id_categoria}
+        try:
+            self.repo.update(r, payload, user_id)
+            self.db.commit()
+            return {'id_categoria': id_categoria}
+        except IntegrityError as exc:
+            self.db.rollback()
+            raise DominioError('DATO_DUPLICADO', 'Ya existe una categoria con ese nombre', 409) from exc
     def inactivar_categoria(self, id_categoria: int, motivo: str, user_id: int) -> dict:
         r = self.repo.get(id_categoria)
         if not r:
