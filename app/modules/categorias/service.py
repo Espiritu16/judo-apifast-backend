@@ -88,4 +88,10 @@ class CategoriaService:
             'nombre_categoria': r.nombre_categoria,
             'descripcion': r.descripcion,
             'estado': r.estado,
+            'creado_por': r.creado_por,
+            'fecha_creacion': r.fecha_creacion,
+            'editado_por': r.editado_por,
+            'fecha_edicion': r.fecha_edicion,
+            'inactivado_por': r.inactivado_por,
+            'fecha_inactivacion': r.fecha_inactivacion,
         }

@@ -92,10 +92,17 @@ class MovimientoService:
             {
                 'id_movimiento': m.id_movimiento,
                 'id_producto': m.id_producto,
+                'fecha_movimiento': m.fecha_movimiento,
                 'tipo_movimiento': m.tipo_movimiento,
                 'cantidad': float(m.cantidad),
                 'costo_unitario': float(m.costo_unitario) if m.costo_unitario is not None else None,
                 'motivo': m.motivo,
+                'referencia': m.referencia,
+                'observacion': m.observacion,
+                'creado_por': m.creado_por,
+                'fecha_creacion': m.fecha_creacion,
+                'editado_por': m.editado_por,
+                'fecha_edicion': m.fecha_edicion,
             }
             for m in data
         ]
@@ -106,10 +113,15 @@ class MovimientoService:
         return {
             'id_movimiento': m.id_movimiento,
             'id_producto': m.id_producto,
+            'fecha_movimiento': m.fecha_movimiento,
             'tipo_movimiento': m.tipo_movimiento,
             'cantidad': float(m.cantidad),
             'costo_unitario': float(m.costo_unitario) if m.costo_unitario is not None else None,
             'motivo': m.motivo,
             'referencia': m.referencia,
             'observacion': m.observacion,
+            'creado_por': m.creado_por,
+            'fecha_creacion': m.fecha_creacion,
+            'editado_por': m.editado_por,
+            'fecha_edicion': m.fecha_edicion,
         }

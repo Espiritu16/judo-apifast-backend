@@ -14,6 +14,7 @@ class InventarioService:
         for p, pi in rows:
             if q and q.lower() not in p.nombre_producto.lower():
                 continue
+            ultimo = self.repo.get_ultimo_movimiento(p.id_producto)
             data.append(
                 {
                     'id_producto': p.id_producto,
@@ -23,6 +24,21 @@ class InventarioService:
                     'stock_maximo': float(pi.stock_maximo),
                     'stock_seguridad': float(pi.stock_seguridad),
                     'estado_stock': pi.estado_stock,
+                    'ultimo_movimiento': (
+                        ultimo.fecha_movimiento.isoformat(sep=' ', timespec='minutes')
+                        if ultimo and getattr(ultimo, 'fecha_movimiento', None)
+                        else None
+                    ),
+                    'tipo_ultimo_movimiento': (
+                        ultimo.tipo_movimiento
+                        if ultimo
+                        else None
+                    ),
+                    'cantidad_ultimo_movimiento': (
+                        float(ultimo.cantidad)
+                        if ultimo and getattr(ultimo, 'cantidad', None) is not None
+                        else None
+                    ),
                 }
             )
         return data

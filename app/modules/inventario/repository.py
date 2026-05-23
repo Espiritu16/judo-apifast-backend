@@ -1,4 +1,5 @@
-from datetime import datetime, timedelta
+from datetime import timedelta
+from app.shared.dates import now_lima_naive
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 from app.modules.inventario.model_movimiento import MovimientoInventario
@@ -20,8 +21,17 @@ class InventarioRepository:
     def get_parametro(self, id_producto: int) -> ParametroInventario | None:
         return self.db.get(ParametroInventario, id_producto)
 
+    def get_ultimo_movimiento(self, id_producto: int) -> MovimientoInventario | None:
+        stmt = (
+            select(MovimientoInventario)
+            .where(MovimientoInventario.id_producto == id_producto)
+            .order_by(MovimientoInventario.fecha_movimiento.desc(), MovimientoInventario.id_movimiento.desc())
+            .limit(1)
+        )
+        return self.db.execute(stmt).scalars().first()
+
     def get_consumo_promedio_diario(self, id_producto: int, dias: int = 30) -> float:
-        fecha_inicio = datetime.utcnow() - timedelta(days=dias)
+        fecha_inicio = now_lima_naive() - timedelta(days=dias)
         total_salidas = self.db.execute(
             select(func.coalesce(func.sum(MovimientoInventario.cantidad), 0))
             .where(MovimientoInventario.id_producto == id_producto)
@@ -37,4 +47,4 @@ class InventarioRepository:
         pi.stock_seguridad = data['stock_seguridad']
         pi.tiempo_reposicion_dias = data['tiempo_reposicion_dias']
         pi.editado_por = user_id
-        pi.fecha_edicion = datetime.utcnow()
+        pi.fecha_edicion = now_lima_naive()

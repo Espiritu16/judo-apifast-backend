@@ -180,6 +180,11 @@ class UsuarioService:
             'correo': user.correo,
             'rol': user.rol,
             'estado': user.estado,
+            'creado_por': user.creado_por,
+            'editado_por': user.editado_por,
+            'inactivado_por': user.inactivado_por,
             'fecha_creacion': user.fecha_creacion,
             'fecha_actualizacion': user.fecha_edicion,
+            'fecha_edicion': user.fecha_edicion,
+            'fecha_inactivacion': user.fecha_inactivacion,
         }

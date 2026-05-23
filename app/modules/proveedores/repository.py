@@ -1,4 +1,4 @@
-from datetime import datetime
+from app.shared.dates import now_lima_naive
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 from app.modules.categorias.model import Categoria
@@ -28,13 +28,13 @@ class ProveedorRepository:
                 continue
             setattr(item, k, v)
         item.editado_por = user_id
-        item.fecha_edicion = datetime.utcnow()
+        item.fecha_edicion = now_lima_naive()
         return item
     def inactivate(self, item: Proveedor, motivo: str, user_id: int) -> Proveedor:
         item.estado = 'INACTIVO'
         item.inactivado_por = user_id
         item.motivo_inactivacion = motivo
-        item.fecha_inactivacion = datetime.utcnow()
+        item.fecha_inactivacion = now_lima_naive()
         return item
 
     def list_by_categoria(self, id_categoria: int) -> list[Proveedor]:
@@ -79,7 +79,7 @@ class ProveedorRepository:
         stmt = select(ProveedorCategoria).where(ProveedorCategoria.id_proveedor == id_proveedor)
         rows = self.db.execute(stmt).scalars().all()
         by_categoria = {row.id_categoria: row for row in rows}
-        now = datetime.utcnow()
+        now = now_lima_naive()
 
         for categoria_id in target:
             current = by_categoria.get(categoria_id)

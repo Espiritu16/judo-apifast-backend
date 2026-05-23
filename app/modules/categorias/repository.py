@@ -1,4 +1,4 @@
-from datetime import datetime
+from app.shared.dates import now_lima_naive
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 from app.modules.categorias.model import Categoria
@@ -20,11 +20,11 @@ class CategoriaRepository:
         for k, v in data.items():
             setattr(item, k, v)
         item.editado_por = user_id
-        item.fecha_edicion = datetime.utcnow()
+        item.fecha_edicion = now_lima_naive()
         return item
     def inactivate(self, item: Categoria, motivo: str, user_id: int) -> Categoria:
         item.estado = 'INACTIVO'
         item.inactivado_por = user_id
         item.motivo_inactivacion = motivo
-        item.fecha_inactivacion = datetime.utcnow()
+        item.fecha_inactivacion = now_lima_naive()
         return item

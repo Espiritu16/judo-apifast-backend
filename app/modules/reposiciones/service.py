@@ -42,6 +42,10 @@ class ReposicionesService:
                 'estado_reposicion': r.estado_reposicion,
                 'fecha_solicitud': r.fecha_solicitud,
                 'fecha_recepcion': r.fecha_recepcion,
+                'creado_por': r.creado_por,
+                'fecha_creacion': r.fecha_creacion,
+                'editado_por': r.editado_por,
+                'fecha_edicion': r.fecha_edicion,
             }
             for r in rows
         ]
@@ -54,7 +58,15 @@ class ReposicionesService:
         return {
             'id_reposicion': r.id_reposicion,
             'codigo_reposicion': r.codigo_reposicion,
+            'id_proveedor': r.id_proveedor,
             'estado_reposicion': r.estado_reposicion,
+            'observacion': r.observacion,
+            'fecha_solicitud': r.fecha_solicitud,
+            'fecha_recepcion': r.fecha_recepcion,
+            'creado_por': r.creado_por,
+            'fecha_creacion': r.fecha_creacion,
+            'editado_por': r.editado_por,
+            'fecha_edicion': r.fecha_edicion,
             'detalles': [
                 {
                     'id_detalle_reposicion': d.id_detalle_reposicion,

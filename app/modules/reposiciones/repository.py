@@ -1,4 +1,4 @@
-from datetime import datetime
+from app.shared.dates import now_lima_naive
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -45,9 +45,9 @@ class ReposicionesRepository:
         repo.estado_reposicion = nuevo_estado
         repo.observacion = observacion or repo.observacion
         repo.editado_por = user_id
-        repo.fecha_edicion = datetime.utcnow()
+        repo.fecha_edicion = now_lima_naive()
         if nuevo_estado == 'RECIBIDA':
-            repo.fecha_recepcion = datetime.utcnow()
+            repo.fecha_recepcion = now_lima_naive()
     def aplicar_recepcion(self, repo: Reposicion, detalles_payload: list[dict], observacion: str | None, user_id: int):
         for item in detalles_payload:
             det = self.get_detalle(item['id_detalle_reposicion'])
@@ -75,7 +75,7 @@ class ReposicionesRepository:
                 )
             )
         repo.estado_reposicion = 'RECIBIDA'
-        repo.fecha_recepcion = datetime.utcnow()
+        repo.fecha_recepcion = now_lima_naive()
         repo.editado_por = user_id
-        repo.fecha_edicion = datetime.utcnow()
+        repo.fecha_edicion = now_lima_naive()
         return 'ok'

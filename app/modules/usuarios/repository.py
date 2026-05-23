@@ -1,4 +1,4 @@
-from datetime import datetime
+from app.shared.dates import now_lima_naive
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 from app.modules.usuarios.model import Usuario
@@ -29,19 +29,19 @@ class UsuarioRepository:
         for k, v in data.items():
             setattr(item, k, v)
         item.editado_por = actor_id
-        item.fecha_edicion = datetime.utcnow()
+        item.fecha_edicion = now_lima_naive()
         return item
 
     def set_estado(self, item: Usuario, estado: str, actor_id: int, motivo: str | None = None) -> Usuario:
         item.estado = estado
         if estado == 'INACTIVO':
             item.inactivado_por = actor_id
-            item.fecha_inactivacion = datetime.utcnow()
+            item.fecha_inactivacion = now_lima_naive()
             item.motivo_inactivacion = motivo or 'Inactivación manual'
         else:
             item.inactivado_por = None
             item.fecha_inactivacion = None
             item.motivo_inactivacion = None
             item.editado_por = actor_id
-            item.fecha_edicion = datetime.utcnow()
+            item.fecha_edicion = now_lima_naive()
         return item
