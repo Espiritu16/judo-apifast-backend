@@ -95,6 +95,13 @@ class ProveedorService:
             'categorias': categorias,
         }
 
+    def listar_por_categoria(self, id_categoria: int) -> list[dict]:
+        existentes = self.repo.categorias_existentes([id_categoria])
+        if id_categoria not in existentes:
+            raise DominioError('RESOURCE_NOT_FOUND', 'Categoría no encontrada.', 404)
+        proveedores = self.repo.list_by_categoria(id_categoria)
+        return [self._to_select_dict(p) for p in proveedores]
+
     def consultar_documento_para_proveedor(self, documento: str) -> dict:
         documento_normalizado, tipo_documento = self._normalizar_y_validar_documento(documento)
 
@@ -249,6 +256,15 @@ class ProveedorService:
             'categorias': categorias,
             # compatibilidad para pantallas antiguas
             'ruc': r.numero_documento,
+        }
+
+    def _to_select_dict(self, r) -> dict:
+        return {
+            'id_proveedor': r.id_proveedor,
+            'razon_social': r.razon_social,
+            'tipo_documento': r.tipo_documento,
+            'numero_documento': r.numero_documento,
+            'estado': r.estado,
         }
 
     def _normalizar_y_validar_documento(self, documento: str) -> tuple[str, str]:

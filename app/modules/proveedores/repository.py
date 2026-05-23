@@ -37,6 +37,19 @@ class ProveedorRepository:
         item.fecha_inactivacion = datetime.utcnow()
         return item
 
+    def list_by_categoria(self, id_categoria: int) -> list[Proveedor]:
+        stmt = (
+            select(Proveedor)
+            .join(ProveedorCategoria, ProveedorCategoria.id_proveedor == Proveedor.id_proveedor)
+            .where(
+                ProveedorCategoria.id_categoria == id_categoria,
+                ProveedorCategoria.activo.is_(True),
+                Proveedor.estado == 'ACTIVO',
+            )
+            .order_by(Proveedor.razon_social.asc())
+        )
+        return self.db.execute(stmt).scalars().all()
+
     def list_active_category_ids(self, id_proveedor: int) -> list[int]:
         stmt = (
             select(ProveedorCategoria.id_categoria)

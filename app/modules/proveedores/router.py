@@ -14,6 +14,10 @@ def crear_proveedor(payload: ProveedorCreate, db: Session = Depends(get_db), use
 @router.get('')
 def listar_proveedores(db: Session = Depends(get_db), _: Usuario = Depends(get_current_user)):
     return respuesta_ok('Proveedores listados', ProveedorServ(db).listar_proveedores())
+
+@router.get('/por-categoria/{id_categoria}')
+def listar_proveedores_por_categoria(id_categoria: int, db: Session = Depends(get_db), _: Usuario = Depends(get_current_user)):
+    return respuesta_ok('Proveedores por categoría listados', ProveedorServ(db).listar_por_categoria(id_categoria))
 @router.get('/consulta-documento/{documento}')
 def consultar_documento_proveedor(documento: str, db: Session = Depends(get_db), _: Usuario = Depends(get_current_user)):
     return respuesta_ok(

@@ -1,5 +1,7 @@
 from sqlalchemy.orm import Session
+from app.modules.productos.model import Producto
 from app.modules.proveedores.model import Proveedor
+from app.modules.proveedores.repository import ProveedorRepository
 from app.modules.reposiciones.repository import ReposicionesRepository
 from app.modules.usuarios.model import Usuario
 from app.shared.exceptions import DominioError
@@ -15,6 +17,7 @@ de las APIs en el  router de reposiciones"""
 class ReposicionesService:
     def __init__(self,db):
         self.repo=ReposicionesRepository(db)
+        self.proveedor_repo = ProveedorRepository(db)
         self.db=db
     
     def crear_reposicion(self, payload: dict, user: Usuario) -> dict:
@@ -23,6 +26,7 @@ class ReposicionesService:
         proveedor = self.db.get(Proveedor, payload['id_proveedor'])
         if not proveedor or proveedor.estado != 'ACTIVO':
             raise DominioError('PROVEEDOR_NO_ENCONTRADO', 'Proveedor no encontrado o inactivo', 404)
+        self._validar_proveedor_contra_categorias_productos(payload['id_proveedor'], payload['detalles'])
         repo = self.repo.create_reposicion(payload, user.id_usuario)
         self.db.commit()
         self.db.refresh(repo)
@@ -91,3 +95,25 @@ class ReposicionesService:
         self.db.commit()
         self.db.refresh(r)
         return self.obtener_reposicion(r.id_reposicion)
+
+    def _validar_proveedor_contra_categorias_productos(self, id_proveedor: int, detalles: list[dict]) -> None:
+        categoria_ids_requeridas: set[int] = set()
+        for d in detalles:
+            producto = self.db.get(Producto, d['id_producto'])
+            if not producto:
+                raise DominioError('PRODUCTO_NO_ENCONTRADO', f"Producto no encontrado: {d['id_producto']}", 404)
+            if not producto.id_categoria:
+                raise DominioError(
+                    'PRODUCTO_SIN_CATEGORIA',
+                    f"El producto {producto.nombre_producto} no tiene categoría asociada.",
+                    400,
+                )
+            categoria_ids_requeridas.add(int(producto.id_categoria))
+
+        categorias_proveedor = set(self.proveedor_repo.list_active_category_ids(id_proveedor))
+        if not categoria_ids_requeridas.issubset(categorias_proveedor):
+            raise DominioError(
+                'PROVEEDOR_CATEGORIA_INVALIDA',
+                'El proveedor seleccionado no abastece la categoría del producto.',
+                409,
+            )
