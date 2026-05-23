@@ -19,4 +19,7 @@ def stock_critico(db: Session = Depends(get_db), _: Usuario = Depends(get_curren
 "API relacionada a actualizar los parámetros de 1 producto en específico"
 @router.put('/parametros/{id_producto}')
 def actualizar_parametros(id_producto: int, payload: ParametroInventarioUpdate, db: Session = Depends(get_db), user: Usuario = Depends(require_roles('DUEÑA'))):
-    return respuesta_ok('Parametros de inventario actualizados', InventarioServ(db).actualizar_parametros(id_producto, payload.model_dump(), user.id_usuario))
+    return respuesta_ok(
+        'Parametros de inventario actualizados',
+        InventarioServ(db).actualizar_parametros(id_producto, payload.model_dump(exclude_unset=True), user.id_usuario)
+    )

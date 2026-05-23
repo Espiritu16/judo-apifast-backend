@@ -20,6 +20,8 @@ class InventarioService:
                     'stock_actual': float(pi.stock_actual),
                     'stock_minimo': float(pi.stock_minimo),
                     'stock_maximo': float(pi.stock_maximo),
+                    'stock_seguridad': float(pi.stock_seguridad),
+                    'estado_stock': pi.estado_stock,
                 }
             )
         return data
@@ -39,6 +41,7 @@ class InventarioService:
                         'stock_actual': actual,
                         'stock_minimo': minimo,
                         'stock_maximo': maximo,
+                        'estado_stock': pi.estado_stock,
                         'cantidad_sugerida': sugerida,
                     }
                 )
@@ -57,7 +60,13 @@ class InventarioService:
                 'No existe parametro de inventario para este producto', 
                 404
             )
-        self.repo.update_parametros(pi, payload, user_id)
+        payload_ajustado = dict(payload)
+        if payload_ajustado.get('consumo_promedio_diario') is None:
+            payload_ajustado['consumo_promedio_diario'] = self.repo.get_consumo_promedio_diario(id_producto, dias=30)
+        if payload_ajustado.get('tiempo_reposicion_dias') is None:
+            actual = int(pi.tiempo_reposicion_dias or 0)
+            payload_ajustado['tiempo_reposicion_dias'] = actual if actual > 0 else 7
+        self.repo.update_parametros(pi, payload_ajustado, user_id)
         self.db.commit()  # El servicio controla cuándo se confirma la transacción
         self.db.refresh(pi)
         return {
@@ -65,5 +74,7 @@ class InventarioService:
             'stock_actual': float(pi.stock_actual),
             'stock_minimo': float(pi.stock_minimo),
             'stock_maximo': float(pi.stock_maximo),
+            'stock_seguridad': float(pi.stock_seguridad),
+            'estado_stock': pi.estado_stock,
             'ultimo_movimiento': '',
         }

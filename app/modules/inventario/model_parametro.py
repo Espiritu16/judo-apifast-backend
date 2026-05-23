@@ -1,4 +1,4 @@
-from sqlalchemy import BigInteger, CheckConstraint, Computed, ForeignKey, Integer, Numeric, TIMESTAMP, func
+from sqlalchemy import BigInteger, CheckConstraint, Computed, ForeignKey, Integer, Numeric, String, TIMESTAMP, func
 from sqlalchemy.orm import Mapped, mapped_column
 from app.core.database import Base
 "Clase que representa la entidad Parametro_Inventario de la BD en MySQL"
@@ -15,6 +15,17 @@ class ParametroInventario(Base):
         Numeric(12, 2),
         Computed('(consumo_promedio_diario * tiempo_reposicion_dias) + stock_seguridad', persisted=True),
         nullable=False,
+    )
+    estado_stock: Mapped[str] = mapped_column(
+        String(15),
+        Computed(
+            "CASE "
+            "WHEN stock_actual <= 0 THEN 'AGOTADO' "
+            "WHEN stock_actual <= stock_minimo THEN 'STOCK_BAJO' "
+            "ELSE 'DISPONIBLE' END",
+            persisted=True
+        ),
+        nullable=True,
     )
     fecha_creacion: Mapped[str] = mapped_column(TIMESTAMP, nullable=False, server_default=func.now())
     creado_por: Mapped[int] = mapped_column(BigInteger, ForeignKey('usuario.id_usuario'), nullable=False)
