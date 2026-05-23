@@ -1,5 +1,5 @@
 from datetime import datetime
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 from app.modules.inventario.model_parametro import ParametroInventario
 from app.modules.productos.model import Producto
@@ -14,7 +14,7 @@ class InventarioRepository:
             .where(Producto.estado == 'ACTIVO')
         )
         if q:
-            stmt = stmt.where(Producto.nombre_producto.ilike(f"%{q}%"))  
+            stmt = stmt.where(func.lower(Producto.nombre_producto).like(f"%{q.lower()}%"))
         return self.db.execute(stmt).all()
     def get_parametro(self, id_producto: int) -> ParametroInventario | None:
         return self.db.get(ParametroInventario, id_producto)

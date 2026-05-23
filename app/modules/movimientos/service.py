@@ -74,7 +74,7 @@ class MovimientoService:
         self.db.refresh(movimiento)
         return movimiento
     def listar_movimientos(self) -> list[dict]:
-        data = self.repo.list_all(self.db)
+        data = self.repo.list_all()
         return [
             {
                 'id_movimiento': m.id_movimiento,
@@ -87,7 +87,7 @@ class MovimientoService:
             for m in data
         ]
     def obtener_movimiento(self, id_movimiento: int) -> dict | None:
-        m = self.repo.get(self.db, id_movimiento)
+        m = self.repo.get(id_movimiento)
         if not m:
             return None
         return {

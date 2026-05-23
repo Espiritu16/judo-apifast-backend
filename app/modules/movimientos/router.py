@@ -7,15 +7,15 @@ from app.modules.usuarios.model import Usuario
 from app.shared.responses import respuesta_ok
 router = APIRouter()
 @router.post('')
-def crear_movimiento(payload: MovimientoCreate, db: Session = Depends(get_db), user: Usuario = Depends(require_roles('DUENA', 'EMPLEADO'))):
-    movimiento = MovimientoServ.registrar_movimiento(db, payload.model_dump(), user)
+def crear_movimiento(payload: MovimientoCreate, db: Session = Depends(get_db), user: Usuario = Depends(require_roles('DUEÑA', 'EMPLEADO'))):
+    movimiento = MovimientoServ(db).registrar_movimiento(payload.model_dump(), user)
     return respuesta_ok('Movimiento registrado', {'id_movimiento': movimiento.id_movimiento, 'id_producto': movimiento.id_producto})
 @router.get('')
 def listar_movimientos(db: Session = Depends(get_db), _: Usuario = Depends(get_current_user)):
-    return respuesta_ok('Movimientos listados', MovimientoServ.listar_movimientos(db))
+    return respuesta_ok('Movimientos listados', MovimientoServ(db).listar_movimientos())
 @router.get('/{id_movimiento}')
 def obtener_movimiento(id_movimiento: int, db: Session = Depends(get_db), _: Usuario = Depends(get_current_user)):
-    data = MovimientoServ.obtener_movimiento(db, id_movimiento)
+    data = MovimientoServ(db).obtener_movimiento(id_movimiento)
     if not data:
         return respuesta_ok('Movimiento no encontrado', None)
     return respuesta_ok('Movimiento encontrado', data)

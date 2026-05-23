@@ -41,7 +41,7 @@ class ReposicionesRepository:
         return self.db.execute(select(DetalleReposicion).where(DetalleReposicion.id_reposicion == id_reposicion)).scalars().all()
     def get_detalle(self, id_detalle: int) -> DetalleReposicion | None:
         return self.db.get(DetalleReposicion, id_detalle)
-    def set_estado(repo: Reposicion, nuevo_estado: str, observacion: str | None, user_id: int):
+    def set_estado(self, repo: Reposicion, nuevo_estado: str, observacion: str | None, user_id: int):
         repo.estado_reposicion = nuevo_estado
         repo.observacion = observacion or repo.observacion
         repo.editado_por = user_id
@@ -51,7 +51,7 @@ class ReposicionesRepository:
     def aplicar_recepcion(self, repo: Reposicion, detalles_payload: list[dict], observacion: str | None, user_id: int):
         for item in detalles_payload:
             det = self.get_detalle(item['id_detalle_reposicion'])
-            if not det:
+            if not det or det.id_reposicion != repo.id_reposicion:
                 return None
             det.cantidad_recibida = float(det.cantidad_recibida) + item['cantidad_recibida']
 
@@ -61,6 +61,7 @@ class ReposicionesRepository:
             pi.stock_actual = float(pi.stock_actual) + item['cantidad_recibida']
 
             prod = self.db.get(Producto, det.id_producto)
+            prod.costo_unitario_actual = float(det.costo_unitario or prod.costo_unitario_actual)
             self.db.add(
                 MovimientoInventario(
                     id_producto=det.id_producto,

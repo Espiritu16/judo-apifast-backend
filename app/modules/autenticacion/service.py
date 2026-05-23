@@ -9,7 +9,7 @@ class AutenticacionService:
         self.repo=AutenteicacionRepository(db)
         self.db=db
     def login(self, nombre_usuario: str, clave: str) -> dict:
-        user = self.repo.get_by_username(self.db, nombre_usuario)
+        user = self.repo.get_by_username(nombre_usuario)
         if not user or user.estado != 'ACTIVO' or not verify_password(clave, user.clave_hash):
             raise DominioError('CREDENCIALES_INVALIDAS', 'Usuario o clave incorrecta', 401)
         token = crear_token_acceso({'sub': str(user.id_usuario), 'rol': user.rol})

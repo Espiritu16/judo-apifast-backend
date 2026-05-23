@@ -8,7 +8,7 @@ class ReporteService:
         self.db=db
         self.repo=ReportesRepository(db)
     def reporte_valorizacion(self) -> dict:
-        rows = self.repo.fetch_valorizacion(self.db)
+        rows = self.repo.fetch_valorizacion()
         total = sum(float(r.valor_producto) for r in rows)
         return {
             'total_valorizado': total,
@@ -25,7 +25,7 @@ class ReporteService:
             ],
         }
     def reporte_rotacion(self) -> list[dict]:
-        rows =self.repo.fetch_rotacion(self.db)
+        rows =self.repo.fetch_rotacion()
         data = []
         for r in rows:
             base = float(r.stock_actual) if float(r.stock_actual) > 0 else 1.0
@@ -39,7 +39,7 @@ class ReporteService:
             )
         return data
     def reporte_stock_critico(self) -> list[dict]:
-        rows = self.repo.fetch_stock_critico(self.db)
+        rows = self.repo.fetch_stock_critico()
         return [
             {
                 'id_producto': p.id_producto,

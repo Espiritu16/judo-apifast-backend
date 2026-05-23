@@ -1,5 +1,6 @@
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
+from app.modules.categorias.model import Categoria
 from app.modules.productos.repository import ProductosRepository
 from app.shared.exceptions import DominioError
 """Clase servicio que ayudará a crear las funciones que permiten el funcionamiento 
@@ -10,15 +11,18 @@ class ProductoService:
         self.repo = ProductosRepository(db)
         self.db = db
     def crear_producto(self, payload: dict, user_id: int) -> dict:
+        categoria = self.db.get(Categoria, payload['id_categoria'])
+        if not categoria or categoria.estado != 'ACTIVO':
+            raise DominioError('CATEGORIA_NO_ENCONTRADA', 'Categoria no encontrada o inactiva', 404)
         try:
-            item = self.repo.create(self.db, payload, user_id)
+            item = self.repo.create(payload, user_id)
             self.db.commit()
             return {'id_producto': item.id_producto}
         except IntegrityError as exc:
             self.db.rollback()
             raise DominioError('DATO_DUPLICADO', 'Producto duplicado', 409) from exc
     def listar_productos(self) -> list[dict]:
-        rows = self.repo.list_all(self.db)
+        rows = self.repo.list_all()
         return [
             {
                 'id_producto': r.id_producto,
@@ -33,7 +37,7 @@ class ProductoService:
             for r in rows
         ]
     def obtener_producto(self, id_producto: int) -> dict:
-        r = self.repo.get(self.db, id_producto)
+        r = self.repo.get(id_producto)
         if not r:
             raise DominioError('PRODUCTO_NO_ENCONTRADO', 'Producto no encontrado', 404)
         return {
@@ -47,16 +51,19 @@ class ProductoService:
             'estado': r.estado,
         }
     def actualizar_producto(self, id_producto: int, payload: dict, user_id: int) -> dict:
-        r = self.repo.get(self.db, id_producto)
+        r = self.repo.get(id_producto)
         if not r:
             raise DominioError('PRODUCTO_NO_ENCONTRADO', 'Producto no encontrado', 404)
-        self.repo.update(self.db, r, payload, user_id)
+        categoria = self.db.get(Categoria, payload['id_categoria'])
+        if not categoria or categoria.estado != 'ACTIVO':
+            raise DominioError('CATEGORIA_NO_ENCONTRADA', 'Categoria no encontrada o inactiva', 404)
+        self.repo.update(r, payload, user_id)
         self.db.commit()
         return {'id_producto': id_producto}
     def inactivar_producto(self, id_producto: int, motivo: str, user_id: int) -> dict:
-        r = self.repo.get(self.db, id_producto)
+        r = self.repo.get(id_producto)
         if not r:
             raise DominioError('PRODUCTO_NO_ENCONTRADO', 'Producto no encontrado', 404)
-        self.repo.inactivate(self.db, r, motivo, user_id)
+        self.repo.inactivate(r, motivo, user_id)
         self.db.commit()
         return {'id_producto': id_producto}

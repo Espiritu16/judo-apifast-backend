@@ -1,4 +1,5 @@
 from sqlalchemy.orm import Session
+from app.modules.proveedores.model import Proveedor
 from app.modules.reposiciones.repository import ReposicionesRepository
 from app.modules.usuarios.model import Usuario
 from app.shared.exceptions import DominioError
@@ -19,12 +20,15 @@ class ReposicionesService:
     def crear_reposicion(self, payload: dict, user: Usuario) -> dict:
         if not payload['detalles']:
             raise DominioError('REPOSICION_SIN_DETALLE', 'La reposicion debe incluir al menos un detalle', 400)
-        repo = self.repo.create_reposicion(self.db, payload, user.id_usuario)
+        proveedor = self.db.get(Proveedor, payload['id_proveedor'])
+        if not proveedor or proveedor.estado != 'ACTIVO':
+            raise DominioError('PROVEEDOR_NO_ENCONTRADO', 'Proveedor no encontrado o inactivo', 404)
+        repo = self.repo.create_reposicion(payload, user.id_usuario)
         self.db.commit()
         return {'id_reposicion': repo.id_reposicion}
     
     def listar_reposiciones(self) -> list[dict]:
-        rows = self.repo.list_reposiciones(self.db)
+        rows = self.repo.list_reposiciones()
         return [
             {
                 'id_reposicion': r.id_reposicion,
@@ -38,10 +42,10 @@ class ReposicionesService:
         ]
     
     def obtener_reposicion(self, id_reposicion: int) -> dict:
-        r = self.repo.get_reposicion(self.db, id_reposicion)
+        r = self.repo.get_reposicion(id_reposicion)
         if not r:
             raise DominioError('REPOSICION_NO_ENCONTRADA', 'Reposicion no encontrada', 404)
-        detalles = self.repo.list_detalles(self.db, id_reposicion)
+        detalles = self.repo.list_detalles(id_reposicion)
         return {
             'id_reposicion': r.id_reposicion,
             'codigo_reposicion': r.codigo_reposicion,
@@ -58,24 +62,26 @@ class ReposicionesService:
         }
     
     def cambiar_estado(self, id_reposicion: int, payload: dict, user: Usuario) -> dict:
-        r = self.repo.get_reposicion(self.db, id_reposicion)
+        r = self.repo.get_reposicion(id_reposicion)
         if not r:
             raise DominioError('REPOSICION_NO_ENCONTRADA', 'Reposicion no encontrada', 404)
         if payload['nuevo_estado'] not in TRANSICIONES.get(r.estado_reposicion, set()):
             raise DominioError('TRANSICION_ESTADO_INVALIDA', 'Transicion de estado no permitida', 409)
-        if payload['nuevo_estado'] in {'ANULADA', 'CERRADA'} and user.rol != 'DUENA':
-            raise DominioError('USUARIO_NO_AUTORIZADO', 'Solo DUENA puede anular/cerrar reposiciones', 403)
+        if payload['nuevo_estado'] in {'ANULADA', 'CERRADA'} and user.rol != 'DUEÑA':
+            raise DominioError('USUARIO_NO_AUTORIZADO', 'Solo DUEÑA puede anular/cerrar reposiciones', 403)
+        if payload['nuevo_estado'] == 'CERRADA' and not r.fecha_recepcion:
+            raise DominioError('TRANSICION_ESTADO_INVALIDA', 'No se puede cerrar sin fecha de recepcion', 409)
         self.repo.set_estado(r, payload['nuevo_estado'], payload.get('observacion'), user.id_usuario)
         self.db.commit()
         return {'id_reposicion': r.id_reposicion, 'estado_reposicion': r.estado_reposicion}
     
     def recibir_reposicion(self, id_reposicion: int, payload: dict, user: Usuario) -> dict:
-        r = self.repo.get_reposicion(self.db, id_reposicion)
+        r = self.repo.get_reposicion(id_reposicion)
         if not r:
             raise DominioError('REPOSICION_NO_ENCONTRADA', 'Reposicion no encontrada', 404)
-        if r.estado_reposicion not in {'SOLICITADA', 'RECIBIDA'}:
-            raise DominioError('TRANSICION_ESTADO_INVALIDA', 'Solo se puede recibir una reposicion solicitada/recibida', 409)
-        result = self.repo.aplicar_recepcion(self.db, r, payload['detalles'], payload.get('observacion'), user.id_usuario)
+        if r.estado_reposicion != 'SOLICITADA':
+            raise DominioError('TRANSICION_ESTADO_INVALIDA', 'Solo se puede recibir una reposicion en estado SOLICITADA', 409)
+        result = self.repo.aplicar_recepcion(r, payload['detalles'], payload.get('observacion'), user.id_usuario)
         if result is None:
             raise DominioError('DETALLE_NO_ENCONTRADO', 'Detalle de reposicion no encontrado', 404)
         if result == 'missing_param':
