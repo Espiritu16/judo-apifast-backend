@@ -6,7 +6,7 @@ class MovimientoCreate(BaseModel):
     tipo_movimiento: str
     cantidad: float = Field(gt=0)
     costo_unitario: float | None = Field(default=None, ge=0)
-    motivo: str
+    motivo: str = Field(min_length=1, max_length=120)
     referencia: str | None = None
     observacion: str | None = None
 class MovimientoOut(BaseModel):

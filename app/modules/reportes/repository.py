@@ -48,7 +48,16 @@ class ReportesRepository:
     def fetch_rotacion(self, desde: date | None = None, hasta: date | None = None):
         from_dt, to_dt = self._parse_rango(desde, hasta)
         salida_case = case(
-            (MovimientoInventario.tipo_movimiento.in_(['SALIDA', 'MERMA', 'AJUSTE_NEGATIVO']), MovimientoInventario.cantidad),
+            (
+                (
+                    MovimientoInventario.tipo_movimiento.in_(['SALIDA', 'MERMA', 'AJUSTE_NEGATIVO'])
+                )
+                | (
+                    (MovimientoInventario.tipo_movimiento == 'AJUSTE')
+                    & (MovimientoInventario.motivo.in_(['CONTEO_FISICO', 'CORRECCION_MANUAL', 'REGULARIZACION', 'DISMINUCION_AJUSTE']))
+                ),
+                MovimientoInventario.cantidad
+            ),
             else_=0,
         )
         stmt = (

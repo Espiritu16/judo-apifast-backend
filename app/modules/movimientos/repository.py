@@ -14,6 +14,7 @@ class MovimientoRepository:
         tipo: str | None = None,
         producto_id: int | None = None,
         categoria_id: int | None = None,
+        motivo: str | None = None,
     ) -> list[MovimientoInventario]:
         stmt = select(MovimientoInventario).join(
             Producto, Producto.id_producto == MovimientoInventario.id_producto
@@ -28,6 +29,8 @@ class MovimientoRepository:
             stmt = stmt.where(MovimientoInventario.id_producto == producto_id)
         if categoria_id:
             stmt = stmt.where(Producto.id_categoria == categoria_id)
+        if motivo:
+            stmt = stmt.where(MovimientoInventario.motivo == motivo)
         stmt = stmt.order_by(MovimientoInventario.id_movimiento.desc())
         return self.db.execute(stmt).scalars().all()
 

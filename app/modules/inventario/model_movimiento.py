@@ -18,6 +18,6 @@ class MovimientoInventario(Base):
     fecha_edicion: Mapped[str | None] = mapped_column(TIMESTAMP, nullable=True)
     editado_por: Mapped[int | None] = mapped_column(BigInteger, ForeignKey('usuario.id_usuario'), nullable=True)
     __table_args__ = (
-        CheckConstraint("tipo_movimiento IN ('ENTRADA','SALIDA','MERMA','AJUSTE_POSITIVO','AJUSTE_NEGATIVO')", name='ck_mov_tipo_app'),
+        CheckConstraint("tipo_movimiento IN ('ENTRADA','SALIDA','AJUSTE','MERMA','AJUSTE_POSITIVO','AJUSTE_NEGATIVO')", name='ck_mov_tipo_app'),
         CheckConstraint('cantidad > 0', name='ck_mov_cantidad_pos_app'),
     )

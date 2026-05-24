@@ -68,7 +68,7 @@ class ReposicionesRepository:
                     tipo_movimiento='ENTRADA',
                     cantidad=item['cantidad_recibida'],
                     costo_unitario=float(det.costo_unitario or prod.costo_unitario_actual),
-                    motivo='Recepcion de reposicion',
+                    motivo='COMPRA_PROVEEDOR',
                     referencia=repo.codigo_reposicion,
                     observacion=observacion,
                     creado_por=user_id,
