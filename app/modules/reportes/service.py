@@ -1,14 +1,20 @@
+from datetime import date
 from sqlalchemy.orm import Session
-
 from app.modules.reportes.repository import ReportesRepository
+from app.shared.exceptions import DominioError
 """Clase servicio que ayudará a crear las funciones que permiten el funcionamiento 
 de las APIs en el  router de reportes"""
 class ReporteService:
     def __init__(self,db:Session):
         self.db=db
         self.repo=ReportesRepository(db)
-    def reporte_valorizacion(self) -> dict:
-        rows = self.repo.fetch_valorizacion()
+    def _validar_rango(self, desde: date | None, hasta: date | None) -> None:
+        if desde and hasta and desde > hasta:
+            raise DominioError('VALIDATION_ERROR', 'La fecha inicial no puede ser mayor que la fecha final.', 400)
+
+    def reporte_valorizacion(self, desde: date | None = None, hasta: date | None = None) -> dict:
+        self._validar_rango(desde, hasta)
+        rows = self.repo.fetch_valorizacion(desde, hasta)
         total = sum(float(r.valor_producto) for r in rows)
         return {
             'total_valorizado': total,
@@ -24,8 +30,10 @@ class ReporteService:
                 for r in rows
             ],
         }
-    def reporte_rotacion(self) -> list[dict]:
-        rows =self.repo.fetch_rotacion()
+
+    def reporte_rotacion(self, desde: date | None = None, hasta: date | None = None) -> list[dict]:
+        self._validar_rango(desde, hasta)
+        rows = self.repo.fetch_rotacion(desde, hasta)
         data = []
         for r in rows:
             base = float(r.stock_actual) if float(r.stock_actual) > 0 else 1.0
@@ -33,13 +41,17 @@ class ReporteService:
                 {
                     'id_producto': r.id_producto,
                     'nombre_producto': r.nombre_producto,
+                    'id_categoria': r.id_categoria,
+                    'categoria': r.nombre_categoria,
                     'cantidad_salida': float(r.cantidad_salida),
                     'rotacion': float(r.cantidad_salida) / base,
                 }
             )
         return data
-    def reporte_stock_critico(self) -> list[dict]:
-        rows = self.repo.fetch_stock_critico()
+
+    def reporte_stock_critico(self, desde: date | None = None, hasta: date | None = None) -> list[dict]:
+        self._validar_rango(desde, hasta)
+        rows = self.repo.fetch_stock_critico(desde, hasta)
         return [
             {
                 'id_producto': p.id_producto,

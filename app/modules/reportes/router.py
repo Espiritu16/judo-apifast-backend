@@ -1,3 +1,4 @@
+from datetime import date
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from app.core.deps import get_current_user, get_db
@@ -7,13 +8,28 @@ from app.shared.responses import respuesta_ok
 router = APIRouter()
 #API que muestra un reporte de valorización
 @router.get('/valorizacion')
-def reporte_valorizacion(db: Session = Depends(get_db), _: Usuario = Depends(get_current_user)):
-    return respuesta_ok('Reporte de valorización generado', ReporteServ(db).reporte_valorizacion())
+def reporte_valorizacion(
+    desde: date | None = None,
+    hasta: date | None = None,
+    db: Session = Depends(get_db),
+    _: Usuario = Depends(get_current_user),
+):
+    return respuesta_ok('Reporte de valorización generado', ReporteServ(db).reporte_valorizacion(desde, hasta))
 @router.get('/rotacion')
 #API que muestra un reporte de rotación
-def reporte_rotacion(db: Session = Depends(get_db), _: Usuario = Depends(get_current_user)):
-    return respuesta_ok('Reporte de rotación generado', ReporteServ(db).reporte_rotacion())
+def reporte_rotacion(
+    desde: date | None = None,
+    hasta: date | None = None,
+    db: Session = Depends(get_db),
+    _: Usuario = Depends(get_current_user),
+):
+    return respuesta_ok('Reporte de rotación generado', ReporteServ(db).reporte_rotacion(desde, hasta))
 #API que muestra un reporte de stock crítico
 @router.get('/stock-critico')
-def reporte_stock_critico(db: Session = Depends(get_db), _: Usuario = Depends(get_current_user)):
-    return respuesta_ok('Reporte de stock crítico generado', ReporteServ(db).reporte_stock_critico())
+def reporte_stock_critico(
+    desde: date | None = None,
+    hasta: date | None = None,
+    db: Session = Depends(get_db),
+    _: Usuario = Depends(get_current_user),
+):
+    return respuesta_ok('Reporte de stock crítico generado', ReporteServ(db).reporte_stock_critico(desde, hasta))

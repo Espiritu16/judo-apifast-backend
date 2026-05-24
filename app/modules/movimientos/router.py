@@ -1,3 +1,4 @@
+from datetime import date
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from app.core.deps import get_current_user, get_db, require_roles
@@ -11,8 +12,25 @@ def crear_movimiento(payload: MovimientoCreate, db: Session = Depends(get_db), u
     movimiento = MovimientoServ(db).registrar_movimiento(payload.model_dump(), user)
     return respuesta_ok('Movimiento registrado', {'id_movimiento': movimiento.id_movimiento, 'id_producto': movimiento.id_producto})
 @router.get('')
-def listar_movimientos(db: Session = Depends(get_db), _: Usuario = Depends(get_current_user)):
-    return respuesta_ok('Movimientos listados', MovimientoServ(db).listar_movimientos())
+def listar_movimientos(
+    desde: date | None = None,
+    hasta: date | None = None,
+    tipo: str | None = None,
+    productoId: int | None = None,
+    categoriaId: int | None = None,
+    db: Session = Depends(get_db),
+    _: Usuario = Depends(get_current_user),
+):
+    return respuesta_ok(
+        'Movimientos listados',
+        MovimientoServ(db).listar_movimientos(
+            desde=desde,
+            hasta=hasta,
+            tipo=tipo,
+            producto_id=productoId,
+            categoria_id=categoriaId,
+        ),
+    )
 @router.get('/{id_movimiento}')
 def obtener_movimiento(id_movimiento: int, db: Session = Depends(get_db), _: Usuario = Depends(get_current_user)):
     return respuesta_ok('Movimiento encontrado', MovimientoServ(db).obtener_movimiento(id_movimiento))

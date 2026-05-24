@@ -1,4 +1,6 @@
+from datetime import date, datetime, time
 from decimal import Decimal
+from zoneinfo import ZoneInfo
 from sqlalchemy.orm import Session
 from app.modules.inventario.model_movimiento import MovimientoInventario
 from app.modules.inventario.model_parametro import ParametroInventario
@@ -9,6 +11,7 @@ from app.shared.exceptions import DominioError
 """Clase servicio que ayudará a crear las funciones que permiten el funcionamiento 
 de las APIs en el  router de inventario"""
 TIPOS_VALIDOS = {'ENTRADA', 'SALIDA', 'MERMA', 'AJUSTE_POSITIVO', 'AJUSTE_NEGATIVO'}
+LIMA_TZ = ZoneInfo("America/Lima")
 
 
 class MovimientoService:
@@ -86,8 +89,23 @@ class MovimientoService:
             raise
         self.db.refresh(movimiento)
         return movimiento
-    def listar_movimientos(self) -> list[dict]:
-        data = self.repo.list_all()
+    def listar_movimientos(
+        self,
+        desde: date | None = None,
+        hasta: date | None = None,
+        tipo: str | None = None,
+        producto_id: int | None = None,
+        categoria_id: int | None = None,
+    ) -> list[dict]:
+        self._validar_filtros(desde, hasta, tipo, producto_id, categoria_id)
+        desde_dt, hasta_dt = self._rango_lima(desde, hasta)
+        data = self.repo.list_all(
+            desde=desde_dt,
+            hasta=hasta_dt,
+            tipo=tipo,
+            producto_id=producto_id,
+            categoria_id=categoria_id,
+        )
         return [
             {
                 'id_movimiento': m.id_movimiento,
@@ -106,6 +124,32 @@ class MovimientoService:
             }
             for m in data
         ]
+
+    def _rango_lima(self, desde: date | None, hasta: date | None) -> tuple[datetime | None, datetime | None]:
+        desde_dt = None
+        hasta_dt = None
+        if desde:
+            desde_dt = datetime.combine(desde, time.min).replace(tzinfo=LIMA_TZ).replace(tzinfo=None)
+        if hasta:
+            hasta_dt = datetime.combine(hasta, time.max).replace(tzinfo=LIMA_TZ).replace(tzinfo=None)
+        return desde_dt, hasta_dt
+
+    def _validar_filtros(
+        self,
+        desde: date | None,
+        hasta: date | None,
+        tipo: str | None,
+        producto_id: int | None,
+        categoria_id: int | None,
+    ) -> None:
+        if desde and hasta and desde > hasta:
+            raise DominioError('VALIDATION_ERROR', 'La fecha inicial no puede ser mayor que la fecha final.', 400)
+        if tipo and tipo not in TIPOS_VALIDOS:
+            raise DominioError('VALIDATION_ERROR', f'Tipo de movimiento inválido: {tipo}', 400)
+        if producto_id is not None and producto_id <= 0:
+            raise DominioError('VALIDATION_ERROR', 'productoId debe ser mayor que 0.', 400)
+        if categoria_id is not None and categoria_id <= 0:
+            raise DominioError('VALIDATION_ERROR', 'categoriaId debe ser mayor que 0.', 400)
     def obtener_movimiento(self, id_movimiento: int) -> dict | None:
         m = self.repo.get(id_movimiento)
         if not m:
