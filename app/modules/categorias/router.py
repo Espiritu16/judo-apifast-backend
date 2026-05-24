@@ -11,7 +11,7 @@ router = APIRouter()
 
 "API para crear una categoría"
 @router.post('')
-def crear_categoria(payload: CategoriaCreate, db: Session = Depends(get_db), user: Usuario = Depends(require_roles('DUEÑA'))):
+def crear_categoria(payload: CategoriaCreate, db: Session = Depends(get_db), user: Usuario = Depends(require_roles('DUEÑA', 'EMPLEADO'))):
     return respuesta_ok('Categoria creada', CategoriaServ(db).crear_categoria(payload.model_dump(), user.id_usuario))
 
 "API para mostrar las categorías existentes"
@@ -26,10 +26,10 @@ def obtener_categoria(id_categoria: int, db: Session = Depends(get_db), _: Usuar
 
 "API para actualizar una categoría"
 @router.put('/{id_categoria}')
-def actualizar_categoria(id_categoria: int, payload: CategoriaUpdate, db: Session = Depends(get_db), user: Usuario = Depends(require_roles('DUEÑA'))):
+def actualizar_categoria(id_categoria: int, payload: CategoriaUpdate, db: Session = Depends(get_db), user: Usuario = Depends(require_roles('DUEÑA', 'EMPLEADO'))):
     return respuesta_ok('Categoria actualizada', CategoriaServ(db).actualizar_categoria(id_categoria, payload.model_dump(), user.id_usuario))
 
 "API para desactivar 1 categoría"
 @router.patch('/{id_categoria}/inactivar')
-def inactivar_categoria(id_categoria: int, payload: InactivarPayload, db: Session = Depends(get_db), user: Usuario = Depends(require_roles('DUEÑA'))):
+def inactivar_categoria(id_categoria: int, payload: InactivarPayload, db: Session = Depends(get_db), user: Usuario = Depends(require_roles('DUEÑA', 'EMPLEADO'))):
     return respuesta_ok('Categoria inactivada', CategoriaServ(db).inactivar_categoria(id_categoria, payload.motivo, user.id_usuario))

@@ -79,7 +79,7 @@ judo-apifast-backend/
 - Roles de usuario permitidos: `DUEÑA`, `EMPLEADO`.
 - Estados de catalogo: `ACTIVO` / `INACTIVO`.
 - En movimientos:
-  - tipos validos: `ENTRADA`, `SALIDA`, `MERMA`, `AJUSTE_POSITIVO`, `AJUSTE_NEGATIVO`.
+  - tipos validos: `ENTRADA`, `SALIDA`, `AJUSTE` (con compatibilidad legacy: `MERMA`, `AJUSTE_POSITIVO`, `AJUSTE_NEGATIVO`).
   - `ENTRADA` exige `costo_unitario`.
   - `SALIDA`, `MERMA`, `AJUSTE_NEGATIVO` no pueden dejar stock negativo.
 - En inventario:
@@ -89,7 +89,7 @@ judo-apifast-backend/
   - transiciones validas: `BORRADOR -> SOLICITADA/ANULADA`, `SOLICITADA -> RECIBIDA/ANULADA`, `RECIBIDA -> CERRADA`.
   - `ANULADA` y `CERRADA` terminales.
   - al recibir reposicion se generan movimientos `ENTRADA` por detalle.
-  - solo `DUEÑA` puede anular/cerrar reposiciones.
+  - tanto `DUEÑA` como `EMPLEADO` pueden ejecutar transiciones validas.
 
 ## 8. API principal
 Base URL: `/api/v1`
@@ -142,15 +142,16 @@ Base URL: `/api/v1`
 | Consultar stock y stock critico | ✅ | ✅ |
 | Crear reposicion en BORRADOR | ✅ | ✅ |
 | Cambiar reposicion a `SOLICITADA` o `RECIBIDA` | ✅ | ✅ |
-| Crear categorias | ✅ | ❌ |
-| Actualizar/inactivar categorias | ✅ | ❌ |
-| Crear productos | ✅ | ❌ |
-| Actualizar/inactivar productos | ✅ | ❌ |
-| Crear proveedores | ✅ | ❌ |
-| Actualizar/inactivar proveedores | ✅ | ❌ |
-| Parametrizar inventario (`/inventario/parametros/{id_producto}`) | ✅ | ❌ |
-| Cambiar reposicion a `ANULADA` o `CERRADA` | ✅ | ❌ |
+| Crear categorias | ✅ | ✅ |
+| Actualizar/inactivar categorias | ✅ | ✅ |
+| Crear productos | ✅ | ✅ |
+| Actualizar/inactivar productos | ✅ | ✅ |
+| Crear proveedores | ✅ | ✅ |
+| Actualizar/inactivar proveedores | ✅ | ✅ |
+| Parametrizar inventario (`/inventario/parametros/{id_producto}`) | ✅ | ✅ |
+| Cambiar reposicion a `ANULADA` o `CERRADA` | ✅ | ✅ |
 | Consultar reportes (`/reportes/*`) | ✅ | ✅ |
+| Gestion de usuarios (`/usuarios/*`) | ✅ | ❌ |
 
 ## 11. Configuracion por entorno
 Variables principales en `.env`:

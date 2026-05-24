@@ -84,8 +84,6 @@ class ReposicionesService:
             raise DominioError('REPOSICION_NO_ENCONTRADA', 'Reposicion no encontrada', 404)
         if payload['nuevo_estado'] not in TRANSICIONES.get(r.estado_reposicion, set()):
             raise DominioError('TRANSICION_ESTADO_INVALIDA', 'Transicion de estado no permitida', 409)
-        if payload['nuevo_estado'] in {'ANULADA', 'CERRADA'} and user.rol != 'DUEÑA':
-            raise DominioError('USUARIO_NO_AUTORIZADO', 'Solo DUEÑA puede anular/cerrar reposiciones', 403)
         if payload['nuevo_estado'] == 'CERRADA' and not r.fecha_recepcion:
             raise DominioError('TRANSICION_ESTADO_INVALIDA', 'No se puede cerrar sin fecha de recepcion', 409)
         self.repo.set_estado(r, payload['nuevo_estado'], payload.get('observacion'), user.id_usuario)
