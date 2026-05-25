@@ -67,13 +67,14 @@ judo-apifast-backend/
 | Modulo | Descripcion |
 |---|---|
 | `autenticacion` | Login JWT y endpoint `/auth/me`. |
+| `usuarios` | Gestion de usuarios, roles y estados (solo DUEÑA). |
 | `categorias` | Alta, consulta, actualizacion e inactivacion de categorias. |
 | `productos` | Alta, consulta, actualizacion e inactivacion de productos. |
-| `proveedores` | Alta, consulta, actualizacion e inactivacion de proveedores. |
+| `proveedores` | Alta, consulta, actualizacion e inactivacion de proveedores, relacion con categorias. |
 | `inventario` | Consulta de stock, stock critico y parametrizacion por producto. |
-| `movimientos` | Registro y consulta de movimientos de inventario. |
-| `reposiciones` | Creacion de reposiciones, cambios de estado y recepcion. |
-| `reportes` | Reportes de valorizacion, rotacion y stock critico. |
+| `movimientos` | Registro y consulta de movimientos de inventario con filtros avanzados. |
+| `reposiciones` | Creacion de reposiciones, cambios de estado y recepcion con transiciones. |
+| `reportes` | Reportes de valorizacion, rotacion y stock critico con filtros de fecha. |
 
 ## 7. Reglas de negocio clave
 - Roles de usuario permitidos: `DUEÑA`, `EMPLEADO`.
@@ -98,6 +99,12 @@ Base URL: `/api/v1`
 |---|---|---|
 | Auth | `POST` | `/auth/login` |
 | Auth | `GET` | `/auth/me` |
+| Usuarios | `GET` | `/usuarios` |
+| Usuarios | `GET` | `/usuarios/roles` |
+| Usuarios | `GET` | `/usuarios/{id_usuario}` |
+| Usuarios | `POST` | `/usuarios` |
+| Usuarios | `PUT` | `/usuarios/{id_usuario}` |
+| Usuarios | `PATCH` | `/usuarios/{id_usuario}/estado` |
 | Categorias | `POST` | `/categorias` |
 | Categorias | `GET` | `/categorias` |
 | Categorias | `GET` | `/categorias/{id_categoria}` |
@@ -110,23 +117,27 @@ Base URL: `/api/v1`
 | Productos | `PATCH` | `/productos/{id_producto}/inactivar` |
 | Proveedores | `POST` | `/proveedores` |
 | Proveedores | `GET` | `/proveedores` |
+| Proveedores | `GET` | `/proveedores/por-categoria/{id_categoria}` |
+| Proveedores | `GET` | `/proveedores/consulta-documento/{documento}` |
 | Proveedores | `GET` | `/proveedores/{id_proveedor}` |
+| Proveedores | `GET` | `/proveedores/{id_proveedor}/categorias` |
 | Proveedores | `PUT` | `/proveedores/{id_proveedor}` |
+| Proveedores | `PUT` | `/proveedores/{id_proveedor}/categorias` |
 | Proveedores | `PATCH` | `/proveedores/{id_proveedor}/inactivar` |
 | Inventario | `GET` | `/inventario/stock` |
 | Inventario | `GET` | `/inventario/stock/critico` |
 | Inventario | `PUT` | `/inventario/parametros/{id_producto}` |
 | Movimientos | `POST` | `/movimientos` |
-| Movimientos | `GET` | `/movimientos` |
+| Movimientos | `GET` | `/movimientos` (con filtros: desde, hasta, tipo, motivo, productoId, categoriaId) |
 | Movimientos | `GET` | `/movimientos/{id_movimiento}` |
 | Reposiciones | `POST` | `/reposiciones` |
 | Reposiciones | `GET` | `/reposiciones` |
 | Reposiciones | `GET` | `/reposiciones/{id_reposicion}` |
 | Reposiciones | `PATCH` | `/reposiciones/{id_reposicion}/estado` |
 | Reposiciones | `POST` | `/reposiciones/{id_reposicion}/recibir` |
-| Reportes | `GET` | `/reportes/valorizacion` |
-| Reportes | `GET` | `/reportes/rotacion` |
-| Reportes | `GET` | `/reportes/stock-critico` |
+| Reportes | `GET` | `/reportes/valorizacion` (con filtros: desde, hasta) |
+| Reportes | `GET` | `/reportes/rotacion` (con filtros: desde, hasta) |
+| Reportes | `GET` | `/reportes/stock-critico` (con filtros: desde, hasta) |
 
 ## 9. Seguridad
 - Autenticacion con JWT Bearer.
@@ -160,14 +171,14 @@ Variables principales en `.env`:
 APP_NAME=JUDO API
 APP_VERSION=0.1.0
 API_PREFIX=/api/v1
-DATABASE_URL=mysql+pymysql://root:TU_PASSWORD@localhost:3306/judo_db
-JWT_SECRET_KEY=tu_secret
+# Base de datos remota en Railway (ajustar host, usuario, password y puerto segun entorno)
+DATABASE_URL=mysql+pymysql://usuario:password@host:puerto/judo_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=America/Lima
+JWT_SECRET_KEY=tu_secret_key_seguro
 JWT_ALGORITHM=HS256
 JWT_EXPIRE_MINUTES=120
-FACTILIZA_API_TOKEN=tu_token_factiliza
-FACTILIZA_API_BASE_URL=https://api.factiliza.com/v1
-FACTILIZA_TIMEOUT_SECONDS=10
 ```
+
+**Nota:** La base de datos se aloja en Railway. Actualizar credenciales según el entorno (desarrollo, staging, produccion).
 
 ## 12. Ejecucion local
 ```bash
@@ -297,16 +308,20 @@ erDiagram
     }
 
     CATEGORIA ||--o{ PRODUCTO : "clasifica"
+    CATEGORIA ||--o{ PROVEEDOR : "categoria"
     PRODUCTO ||--|| PARAMETRO_INVENTARIO : "parametriza"
     PRODUCTO ||--o{ MOVIMIENTO_INVENTARIO : "registra"
     PROVEEDOR ||--o{ REPOSICION : "abastece"
     REPOSICION ||--o{ DETALLE_REPOSICION : "detalla"
     PRODUCTO ||--o{ DETALLE_REPOSICION : "incluye"
+    USUARIO ||--o{ USUARIO : "creado_por"
     USUARIO ||--o{ CATEGORIA : "crea/edita"
-    USUARIO ||--o{ PROVEEDOR : "crea/edita"
     USUARIO ||--o{ PRODUCTO : "crea/edita"
+    USUARIO ||--o{ PROVEEDOR : "crea/edita"
+    USUARIO ||--o{ PARAMETRO_INVENTARIO : "actualiza"
     USUARIO ||--o{ MOVIMIENTO_INVENTARIO : "registra"
     USUARIO ||--o{ REPOSICION : "crea/edita"
+    USUARIO ||--o{ DETALLE_REPOSICION : "crea/edita"
 ```
 
 ## 14. Diagrama de arquitectura (JUDO)
@@ -317,7 +332,7 @@ flowchart TB
   end
 
   subgraph C2["Capa API (FastAPI)"]
-    API["Rutas REST<br/>/auth, /categorias, /productos, /proveedores,<br/>/inventario, /movimientos, /reposiciones, /reportes"]
+    API["Rutas REST<br/>/auth, /usuarios, /categorias, /productos, /proveedores,<br/>/inventario, /movimientos, /reposiciones, /reportes"]
     SEC["Seguridad<br/>JWT Bearer + RBAC<br/>401/403 respuesta estandar"]
     APP["Servicios de negocio<br/>Reglas logisticas y validaciones"]
   end
@@ -329,9 +344,10 @@ flowchart TB
 
   subgraph M["Modulos de negocio"]
     AUT["Autenticacion<br/>Login + Me"]
+    USU["Usuarios<br/>CRUD + Roles + Estados"]
     CAT["Categorias<br/>CRUD + Inactivacion"]
     PRO["Productos<br/>CRUD + Parametro inventario"]
-    PRV["Proveedores<br/>CRUD + Inactivacion"]
+    PRV["Proveedores<br/>CRUD + Relacion categorias"]
     INV["Inventario<br/>Stock + Critico + Parametros"]
     MOV["Movimientos<br/>Entradas/Salidas/Ajustes/Mermas"]
     REP["Reposiciones<br/>Flujo de estados + Recepcion"]
@@ -343,6 +359,7 @@ flowchart TB
   SEC --> APP
 
   APP --> AUT
+  APP --> USU
   APP --> CAT
   APP --> PRO
   APP --> PRV
@@ -352,6 +369,7 @@ flowchart TB
   APP --> RPT
 
   AUT --> ORM
+  USU --> ORM
   CAT --> ORM
   PRO --> ORM
   PRV --> ORM
@@ -363,7 +381,15 @@ flowchart TB
 ```
 
 
-## 15. Requerimientos funcionales
+## 15. Relaciones especiales y tablas de union
+### Proveedor - Categoria
+Existe una relacion muchos-a-muchos entre `PROVEEDOR` y `CATEGORIA`:
+- Un proveedor puede surtir múltiples categorías.
+- Una categoría puede ser surtida por múltiples proveedores.
+- Gestionada a través de endpoints `/proveedores/{id_proveedor}/categorias`.
+- Permite filtrar proveedores por categoría con `/proveedores/por-categoria/{id_categoria}`.
+
+## 16. Requerimientos funcionales
 | ID | Requerimiento | Descripcion |
 |---|---|---|
 | RF-01 | Autenticacion de usuarios | El sistema debe permitir iniciar sesion con usuario y contrasena validando `clave_hash` y emitiendo JWT. |
@@ -382,7 +408,7 @@ flowchart TB
 | RF-14 | Reporte de rotacion | Exponer rotacion por producto en base a salidas acumuladas y stock actual. |
 | RF-15 | Reporte de stock critico | Exponer listado de productos en condicion critica de inventario. |
 
-## 16. Requerimientos no funcionales
+## 17. Requerimientos no funcionales
 | ID | Requerimiento | Descripcion |
 |---|---|---|
 | RNF-01 | Seguridad de autenticacion | JWT firmado con secreto y algoritmo configurables por entorno. |
@@ -397,6 +423,8 @@ flowchart TB
 | RNF-10 | Documentacion operativa | Exponer documentacion interactiva en Swagger (`/docs`) para pruebas y consumo de API. |
 
 
-## 17. Base de datos
+## 18. Base de datos
 - Script MySQL de referencia en: `/Users/sankef/LENGUAJEPROGRAMACION/INFORMES/mySql.sql`
 - La tabla `usuario` debe incluir `clave_hash` para login.
+- La base de datos se aloja en Railway con conexión remota.
+- Toda entidad de negocio incluye auditoría: `creado_por`, `fecha_creacion`, `editado_por`, `fecha_edicion`.
