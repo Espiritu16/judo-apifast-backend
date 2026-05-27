@@ -14,12 +14,11 @@ app = FastAPI(title=settings.APP_NAME, version=settings.APP_VERSION)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "https://proyectoutp.com",
-        "http://proyectoutp.com",
-        "https://www.proyectoutp.com",
-        "http://www.proyectoutp.com",
+        "https://judo.proyectoutp.com",
+        "http://localhost:4200",
+        "http://localhost:5173",
+        "http://localhost:3000",
     ],
-    allow_origin_regex=r"^https?://localhost(:\d+)?$",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
