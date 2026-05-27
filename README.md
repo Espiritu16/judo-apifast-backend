@@ -192,6 +192,12 @@ Documentacion interactiva:
 - Swagger UI: `http://localhost:8000/docs`
 - Healthcheck: `http://localhost:8000/salud`
 
+## 12.1 Ejecucion con Docker (VPS)
+```bash
+docker build -t judo-backend .
+docker run --rm -p 8000:8000 --env-file .env judo-backend
+```
+
 ## 13. Modelo logico de base de datos (JUDO)
 ```mermaid
 erDiagram
