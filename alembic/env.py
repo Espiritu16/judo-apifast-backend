@@ -1,6 +1,7 @@
 from logging.config import fileConfig
 
 from alembic import context
+from sqlalchemy.engine import make_url
 from sqlalchemy import engine_from_config, pool
 
 from app.core.config import settings
@@ -18,7 +19,12 @@ from app.modules.reposiciones.model_reposicion import Reposicion  # noqa: F401
 from app.modules.reposiciones.model_detalle import DetalleReposicion  # noqa: F401
 
 config = context.config
-config.set_main_option("sqlalchemy.url", settings.DATABASE_URL)
+database_url = make_url(settings.DATABASE_URL)
+query = dict(database_url.query)
+query.pop("useSSL", None)
+query.pop("allowPublicKeyRetrieval", None)
+query.pop("serverTimezone", None)
+config.set_main_option("sqlalchemy.url", str(database_url.set(query=query)))
 
 if config.config_file_name is not None:
     try:
