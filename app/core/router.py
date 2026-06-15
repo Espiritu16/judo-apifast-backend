@@ -1,4 +1,5 @@
 from fastapi import APIRouter
+from app.modules.auditoria.router import router as auditoria_router
 from app.modules.autenticacion.router import router as autenticacion_router
 from app.modules.categorias.router import router as categorias_router
 from app.modules.inventario.router import router as inventario_router
@@ -18,3 +19,4 @@ api_router.include_router(movimientos_router, prefix='/movimientos', tags=['movi
 api_router.include_router(reposiciones_router, prefix='/reposiciones', tags=['reposiciones'])
 api_router.include_router(reportes_router, prefix='/reportes', tags=['reportes'])
 api_router.include_router(usuarios_router, prefix='/usuarios', tags=['usuarios'])
+api_router.include_router(auditoria_router, prefix='/auditoria', tags=['auditoria'])
