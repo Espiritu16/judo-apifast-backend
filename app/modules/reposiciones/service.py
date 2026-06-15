@@ -1,4 +1,3 @@
-from sqlalchemy.orm import Session
 from app.modules.productos.model import Producto
 from app.modules.proveedores.model import Proveedor
 from app.modules.proveedores.repository import ProveedorRepository

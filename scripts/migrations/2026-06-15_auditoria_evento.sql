@@ -1,0 +1,22 @@
+CREATE TABLE IF NOT EXISTS auditoria_evento (
+  id_auditoria BIGINT PRIMARY KEY AUTO_INCREMENT,
+  id_usuario BIGINT NULL,
+  accion VARCHAR(80) NOT NULL,
+  modulo VARCHAR(50) NOT NULL,
+  entidad VARCHAR(80) NULL,
+  id_entidad BIGINT NULL,
+  resultado VARCHAR(20) NOT NULL,
+  codigo_error VARCHAR(80) NULL,
+  mensaje VARCHAR(255) NULL,
+  metodo VARCHAR(10) NULL,
+  ruta VARCHAR(255) NULL,
+  ip VARCHAR(45) NULL,
+  user_agent VARCHAR(255) NULL,
+  metadata JSON NULL,
+  fecha_creacion TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_auditoria_usuario_fecha (id_usuario, fecha_creacion),
+  INDEX idx_auditoria_modulo_fecha (modulo, fecha_creacion),
+  INDEX idx_auditoria_accion_fecha (accion, fecha_creacion),
+  INDEX idx_auditoria_resultado_fecha (resultado, fecha_creacion),
+  INDEX idx_auditoria_entidad (entidad, id_entidad)
+);

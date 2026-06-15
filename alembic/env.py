@@ -8,6 +8,7 @@ from app.core.database import Base
 
 # Import models so Alembic can discover metadata
 from app.modules.usuarios.model import Usuario  # noqa: F401
+from app.modules.auditoria.model import AuditoriaEvento  # noqa: F401
 from app.modules.categorias.model import Categoria  # noqa: F401
 from app.modules.proveedores.model import Proveedor  # noqa: F401
 from app.modules.productos.model import Producto  # noqa: F401
