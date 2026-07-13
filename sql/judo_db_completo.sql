@@ -287,7 +287,8 @@ DELIMITER ;;
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'PARAMETRO_INVENTARIO_INVALIDO: producto sin parametro inventario';
     END IF;
 
-    IF NEW.tipo_movimiento IN ('ENTRADA', 'AJUSTE_POSITIVO') THEN
+    IF NEW.tipo_movimiento IN ('ENTRADA', 'AJUSTE_POSITIVO')
+       OR (NEW.tipo_movimiento = 'AJUSTE' AND NEW.motivo = 'INCREMENTO_AJUSTE') THEN
         SET v_stock_nuevo = v_stock_actual + NEW.cantidad;
     ELSE
         SET v_stock_nuevo = v_stock_actual - NEW.cantidad;

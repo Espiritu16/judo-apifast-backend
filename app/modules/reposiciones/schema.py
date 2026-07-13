@@ -10,6 +10,14 @@ class ReposicionCreate(BaseModel):
     id_proveedor: int
     observacion: str | None = None
     detalles: list[DetalleReposicionIn]
+class DetalleReposicionUpdateIn(BaseModel):
+    id_producto: int
+    cantidad_solicitada: float = Field(ge=0)
+    costo_unitario: float = Field(ge=0)
+class ReposicionUpdate(BaseModel):
+    id_proveedor: int
+    observacion: str | None = None
+    detalles: list[DetalleReposicionUpdateIn]
 class ReposicionEstadoUpdate(BaseModel):
     nuevo_estado: str
     observacion: str | None = None

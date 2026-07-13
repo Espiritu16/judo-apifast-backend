@@ -69,24 +69,30 @@ class UsuarioService:
         nombre_nuevo = self._build_full_name(payload['nombres'], payload.get('apellidos'))
         rol_nuevo = self._normalize_role(payload['rol'])
         estado_nuevo = self._normalize_estado(payload['estado'])
+        password_nuevo = (payload.get('password') or '').strip()
 
         no_changes = (
             normalize_text(user.nombre_completo) == normalize_text(nombre_nuevo)
             and user.correo == correo_nuevo
             and self._normalize_role(user.rol) == rol_nuevo
             and self._normalize_estado(user.estado) == estado_nuevo
+            and not password_nuevo
         )
         if no_changes:
             raise DominioError('NO_CHANGES_DETECTED', 'No se detectaron cambios para guardar.', 400)
 
+        data = {
+            'nombre_completo': nombre_nuevo,
+            'correo': correo_nuevo,
+            'rol': rol_nuevo,
+            'estado': estado_nuevo,
+        }
+        if password_nuevo:
+            data['clave_hash'] = hash_password(password_nuevo)
+
         updated = self.repo.update(
             user,
-            {
-                'nombre_completo': nombre_nuevo,
-                'correo': correo_nuevo,
-                'rol': rol_nuevo,
-                'estado': estado_nuevo,
-            },
+            data,
             actor_id,
         )
         self.db.commit()
@@ -117,6 +123,10 @@ class UsuarioService:
 
     def _validar_payload_update(self, payload: dict) -> None:
         self._validar_base(payload)
+        pwd = (payload.get('password') or '').strip()
+        if pwd and len(pwd) < 8:
+            raise DominioError('VALIDATION_ERROR', 'La contraseña debe tener al menos 8 caracteres.', 400)
+        payload['password'] = pwd or None
 
     def _validar_base(self, payload: dict) -> None:
         nombres = (payload.get('nombres') or '').strip()

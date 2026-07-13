@@ -16,6 +16,7 @@ class UsuarioUpdate(BaseModel):
     correo: str = Field(min_length=5, max_length=120)
     rol: str = Field(min_length=3, max_length=30)
     estado: str = Field(min_length=7, max_length=10)
+    password: str | None = Field(default=None, min_length=8, max_length=128)
 
 
 class UsuarioEstadoUpdate(BaseModel):

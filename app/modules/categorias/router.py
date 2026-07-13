@@ -33,3 +33,8 @@ def actualizar_categoria(id_categoria: int, payload: CategoriaUpdate, db: Sessio
 @router.patch('/{id_categoria}/inactivar')
 def inactivar_categoria(id_categoria: int, payload: InactivarPayload, db: Session = Depends(get_db), user: Usuario = Depends(require_roles('DUEÑA', 'EMPLEADO'))):
     return respuesta_ok('Categoria inactivada', CategoriaServ(db).inactivar_categoria(id_categoria, payload.motivo, user.id_usuario))
+
+"API para activar 1 categoría"
+@router.patch('/{id_categoria}/activar')
+def activar_categoria(id_categoria: int, db: Session = Depends(get_db), user: Usuario = Depends(require_roles('DUEÑA', 'EMPLEADO'))):
+    return respuesta_ok('Categoria activada', CategoriaServ(db).activar_categoria(id_categoria, user.id_usuario))

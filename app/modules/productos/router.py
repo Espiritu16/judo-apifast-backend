@@ -26,3 +26,7 @@ def actualizar_producto(id_producto: int, payload: ProductoUpdate, db: Session =
 @router.patch('/{id_producto}/inactivar')
 def inactivar_producto(id_producto: int, payload: InactivarPayload, db: Session = Depends(get_db), user: Usuario = Depends(require_roles('DUEÑA', 'EMPLEADO'))):
     return respuesta_ok('Producto inactivado', ProductServ(db).inactivar_producto(id_producto, payload.motivo, user.id_usuario))
+"API que activa 1 producto inactivo por su ID"
+@router.patch('/{id_producto}/activar')
+def activar_producto(id_producto: int, db: Session = Depends(get_db), user: Usuario = Depends(require_roles('DUEÑA', 'EMPLEADO'))):
+    return respuesta_ok('Producto activado', ProductServ(db).activar_producto(id_producto, user.id_usuario))
