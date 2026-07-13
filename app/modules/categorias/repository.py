@@ -28,3 +28,12 @@ class CategoriaRepository:
         item.motivo_inactivacion = motivo
         item.fecha_inactivacion = now_lima_naive()
         return item
+
+    def activate(self, item: Categoria, user_id: int) -> Categoria:
+        item.estado = 'ACTIVO'
+        item.editado_por = user_id
+        item.fecha_edicion = now_lima_naive()
+        item.inactivado_por = None
+        item.motivo_inactivacion = None
+        item.fecha_inactivacion = None
+        return item

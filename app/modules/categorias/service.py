@@ -61,6 +61,15 @@ class CategoriaService:
         self.db.refresh(r)
         return self._to_dict(r)
 
+    def activar_categoria(self, id_categoria: int, user_id: int) -> dict:
+        r = self.repo.get(id_categoria)
+        if not r:
+            raise DominioError('RESOURCE_NOT_FOUND', 'Categoría no encontrada.', 404)
+        self.repo.activate(r, user_id)
+        self.db.commit()
+        self.db.refresh(r)
+        return self._to_dict(r)
+
     def _validar_payload(self, payload: dict) -> None:
         nombre = (payload.get('nombre_categoria') or '').strip()
         if len(nombre) < 3 or len(nombre) > 80:

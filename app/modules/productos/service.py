@@ -63,6 +63,15 @@ class ProductoService:
         self.db.refresh(r)
         return self._to_dict(r)
 
+    def activar_producto(self, id_producto: int, user_id: int) -> dict:
+        r = self.repo.get(id_producto)
+        if not r:
+            raise DominioError('RESOURCE_NOT_FOUND', 'Producto no encontrado.', 404)
+        self.repo.activate(r, user_id)
+        self.db.commit()
+        self.db.refresh(r)
+        return self._to_dict(r)
+
     def _validar_payload(self, payload: dict, is_create: bool) -> None:
         nombre = (payload.get('nombre_producto') or '').strip()
         if len(nombre) < 3 or len(nombre) > 120:

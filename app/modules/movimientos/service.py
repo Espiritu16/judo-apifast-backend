@@ -151,12 +151,7 @@ class MovimientoService:
                 )
 
         if self._es_movimiento_entrada(tipo_general, motivo_codigo):
-            parametro.stock_actual = stock_actual + cantidad
-        else:
-            parametro.stock_actual = stock_actual - cantidad
-
-        if tipo_general == "ENTRADA" and payload.get("costo_unitario") is not None:
-            producto.costo_unitario_actual = payload["costo_unitario"]
+            self._validar_stock_maximo(parametro, cantidad)
 
         movimiento = MovimientoInventario(
             id_producto=payload["id_producto"],
@@ -292,6 +287,19 @@ class MovimientoService:
         if tipo_general == "AJUSTE" and motivo_codigo in MOTIVOS_AJUSTE_DECREMENTO:
             return True
         return False
+
+    def _validar_stock_maximo(self, parametro: ParametroInventario, cantidad: Decimal) -> None:
+        stock_maximo = Decimal(str(parametro.stock_maximo or 0))
+        if stock_maximo <= 0:
+            return
+
+        stock_actual = Decimal(str(parametro.stock_actual or 0))
+        if stock_actual + cantidad > stock_maximo:
+            raise DominioError(
+                "STOCK_MAXIMO_SUPERADO",
+                "Esta operación superaría el stock máximo configurado para el producto.",
+                409,
+            )
 
     def _rango_lima(self, desde: date | None, hasta: date | None) -> tuple[datetime | None, datetime | None]:
         desde_dt = None
